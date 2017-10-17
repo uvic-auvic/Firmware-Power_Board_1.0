@@ -31,13 +31,16 @@
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
 
-
+/*The task turns on pin 8 for 2 seconds, then shuts off.
+ * Afterwards runs a continuous loop with pin 9 flashing with 2 Hz.
+ *
+ * */
 void blinkyTask(void *dummy){
-	GPIOC->ODR |= 0x100;
+	GPIOC->ODR |= GPIO_ODR_8;
 	vTaskDelay(2000);
-	GPIOC->ODR &= ~(0x100);
+	GPIOC->ODR &= ~(GPIO_ODR_8);
 	while(1){
-		GPIOC->ODR ^= 0x200;
+		GPIOC->ODR ^= GPIO_ODR_9;
 		vTaskDelay(500);
 	}
 }
@@ -54,6 +57,7 @@ void vGeneralTaskInit(void){
 int
 main(int argc, char* argv[])
 {
+	//called from blinkLED.h file to setup the pins
 	initBlinkyLED();
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
