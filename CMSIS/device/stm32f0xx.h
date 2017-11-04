@@ -1151,7 +1151,7 @@ typedef struct
 #define  DMA_IFCR_CTEIF5                     ((uint32_t)0x00080000)        /*!< Channel 5 Transfer Error clear      */
 
 /*******************  Bit definition for DMA_CCR register  ********************/
-#define  DMA_CCR_EN                          ((uint32_t)0x00000001)        /*!< Channel enable                      */
+#define  DMA_CCR_EN                          ((uint32_t)0x00000001)        /*!<  enable                      */
 #define  DMA_CCR_TCIE                        ((uint32_t)0x00000002)        /*!< Transfer complete interrupt enable  */
 #define  DMA_CCR_HTIE                        ((uint32_t)0x00000004)        /*!< Half Transfer interrupt enable      */
 #define  DMA_CCR_TEIE                        ((uint32_t)0x00000008)        /*!< Transfer error interrupt enable     */
@@ -1424,9 +1424,9 @@ typedef struct
 #define GPIO_MODER_MODER1          ((uint32_t)0x0000000C)
 #define GPIO_MODER_MODER1_0        ((uint32_t)0x00000004)
 #define GPIO_MODER_MODER1_1        ((uint32_t)0x00000008)
-#define GPIO_MODER_MODER2          ((uint32_t)0x00000030)
-#define GPIO_MODER_MODER2_0        ((uint32_t)0x00000010)
-#define GPIO_MODER_MODER2_1        ((uint32_t)0x00000020)
+#define GPIO_MODER_MODER2          ((uint32_t)0x00000030)//Analog 11
+#define GPIO_MODER_MODER2_0        ((uint32_t)0x00000010)//output 01
+#define GPIO_MODER_MODER2_1        ((uint32_t)0x00000020)//alternate func mode 10
 #define GPIO_MODER_MODER3          ((uint32_t)0x000000C0)
 #define GPIO_MODER_MODER3_0        ((uint32_t)0x00000040)
 #define GPIO_MODER_MODER3_1        ((uint32_t)0x00000080)
