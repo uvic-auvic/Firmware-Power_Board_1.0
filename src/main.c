@@ -22,7 +22,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "BlinkLED.h"
 #include "ADC.h"
 
 // Sample pragmas to cope with warnings. Please note the related line at
@@ -84,7 +83,6 @@ void vGeneralTaskInit(void){
 int
 main(int argc, char* argv[])
 {
-	initBlinkyLED();
 	//initialize ADC1 and turn on
 	initADCPins(ADC1);
 	vGeneralTaskInit();
