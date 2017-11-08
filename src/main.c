@@ -48,11 +48,11 @@ void ADCTask(ADC_TypeDef* ADCx){
 }
 
 void blinkyTask(void *dummy){
-	GPIOC->ODR |= GPIO_ODR_8;
+	GPIOC->ODR |= 0x100;
 	vTaskDelay(2000);
-	GPIOC->ODR &= ~(GPIO_ODR_8);
+	GPIOC->ODR &= ~(0x100);
 	while(1){
-		GPIOC->ODR ^= GPIO_ODR_9;
+		GPIOC->ODR ^= 0x200;
 		vTaskDelay(500);
 	}
 }
