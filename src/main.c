@@ -31,21 +31,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-void ADCTask(ADC_TypeDef* ADCx){
-	/*ADSTART = ON/1 (declare once b/c conversions are continuous)
-	 * The conversion will start immediately*/
-	ADC_StartOfConversion(ADCx);
-	//CONT=1: start sequence, get DR data and Disable EOC flag
-	while(1){
-		ADC_GetConversionValue(ADCx);
-		ADC_ITConfig(ADCx, ADC_IT_EOC, DISABLE);
-	}
-	//after sequence, Disable EOSEQ flag and go into wait mode.
-	ADC_ITConfig(ADCx, ADC_IT_EOSEQ, DISABLE);
-	ADC_WaitModeCmd(ADCx, ENABLE);
-
-}
-
 void blinkyTask(void *dummy){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 	GPIOC->MODER |= 0x50000;
@@ -55,14 +40,24 @@ void blinkyTask(void *dummy){
 	while(1){
 		GPIOC->ODR ^= 0x200;
 
-		/*0 1 2 3 4 5 6 7 8 9 A  B  C  D  E  F
-		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-		0b1111 -> 15 -> 0xF
-
-		0x3B5FA0 -> (# of bytes) = (number of digits) / 2*/
-
 		vTaskDelay(500);
 	}
+}
+
+void ADCTask(ADC_TypeDef* ADCx){
+	//ADSTART = 1;
+	ADC_StartOfConversion(ADCx);
+	//CONT=1: start sequence, get DR data and Disable EOC flag
+	while(1){
+		ADC_GetConversionValue(ADCx);
+		ADC_ITConfig(ADCx, ADC_IT_EOC, DISABLE);
+	}
+	/*
+	 * //after sequence, Disable EOSEQ flag and go into wait mode.
+		ADC_ITConfig(ADCx, ADC_IT_EOSEQ, DISABLE);
+		ADC_WaitModeCmd(ADCx, ENABLE);
+	 *
+	 */
 }
 
 void vGeneralTaskInit(void){
@@ -83,8 +78,8 @@ void vGeneralTaskInit(void){
 int
 main(int argc, char* argv[])
 {
-	//initialize ADC1 and turn on
-	initADCPins(ADC1);
+	//initialize the GPIO + ADC1
+	initADC1Pins();
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
