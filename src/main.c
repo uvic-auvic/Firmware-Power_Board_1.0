@@ -23,6 +23,8 @@
 #include "task.h"
 
 #include "ADC.h"
+#include "DMA.h"
+#include "NVIC.h"
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -34,12 +36,11 @@
 void blinkyTask(void *dummy){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 	GPIOC->MODER |= 0x50000;
-	GPIOC->ODR |= 0x100; // 0001 0000 0000
+	GPIOC->ODR |= 0x100;
 	vTaskDelay(2000);
-	GPIOC->ODR &= ~(0x100); //clears pin 8 (0b0000 0000 0000)
+	GPIOC->ODR &= ~(0x100);
 	while(1){
 		GPIOC->ODR ^= 0x200;
-
 		vTaskDelay(500);
 	}
 }
@@ -47,17 +48,12 @@ void blinkyTask(void *dummy){
 void ADCTask(ADC_TypeDef* ADCx){
 	//ADSTART = 1;
 	ADC_StartOfConversion(ADCx);
-	//CONT=1: start sequence, get DR data and Disable EOC flag
+	//Get DR data and Disable EOC flag
+	//enable the DMA1 Channel transfer before task begins
 	while(1){
-		ADC_GetConversionValue(ADCx);
-		ADC_ITConfig(ADCx, ADC_IT_EOC, DISABLE);
+		uint16_t value = ADC_GetConversionValue(ADCx);
+		ADC_ClearFlag(ADCx, ADC_IT_EOC);
 	}
-	/*
-	 * //after sequence, Disable EOSEQ flag and go into wait mode.
-		ADC_ITConfig(ADCx, ADC_IT_EOSEQ, DISABLE);
-		ADC_WaitModeCmd(ADCx, ENABLE);
-	 *
-	 */
 }
 
 void vGeneralTaskInit(void){
@@ -67,19 +63,25 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
-    xTaskCreate(ADCTask,
-    		(const signed char *)"ADCTask",
-    		configMINIMAL_STACK_SIZE,
-			ADC1,                 // pvParameters
-    		tskIDLE_PRIORITY + 2, // uxPriority
-    		NULL              ); // pvCreatedTask */
+
+   xTaskCreate(ADCTask,
+    	(const signed char *)"ADCTask",
+    	configMINIMAL_STACK_SIZE,
+   		ADC1,                 // pvParameters
+    	tskIDLE_PRIORITY + 1, // uxPriority
+    	NULL              ); // pvCreatedTask
 }
 
 int
 main(int argc, char* argv[])
 {
-	//initialize the GPIO + ADC1
-	initADC1Pins();
+	//GPIO + ADC1
+	initADCPins();
+	//DMA Channel 1
+	initDMA();
+	//NVIC for DMA Channel 1
+	initNVIC();
+
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
