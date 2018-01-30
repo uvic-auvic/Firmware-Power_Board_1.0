@@ -23,8 +23,6 @@
 #include "task.h"
 
 #include "ADC.h"
-#include "DMA.h"
-#include "NVIC.h"
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -46,13 +44,11 @@ void blinkyTask(void *dummy){
 }
 
 void ADCTask(ADC_TypeDef* ADCx){
-	//ADSTART = 1;
-	ADC_StartOfConversion(ADCx);
-	//Get DR data and Disable EOC flag
-	//enable the DMA1 Channel transfer before task begins
+	uint16_t i = 0;
 	while(1){
-		uint16_t value = ADC_GetConversionValue(ADCx);
-		ADC_ClearFlag(ADCx, ADC_IT_EOC);
+		uint16_t value = Get_ADC_Channel(i);
+		i++;
+		i %= 8;
 	}
 }
 
@@ -75,12 +71,8 @@ void vGeneralTaskInit(void){
 int
 main(int argc, char* argv[])
 {
-	//GPIO + ADC1
+	//GPIO + ADC1 + DMA
 	initADCPins();
-	//DMA Channel 1
-	initDMA();
-	//NVIC for DMA Channel 1
-	initNVIC();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
