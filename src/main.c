@@ -43,12 +43,18 @@ void blinkyTask(void *dummy){
 	}
 }
 
-void ADCTask(ADC_TypeDef* ADCx){
+void ADCTask(){
+	ADC1->ISR |= 0x1;//ADRDY: ADC Ready
+	ADC1->CR |= 0x4;//ADSTART: ADC Start Conversion Command
 	uint16_t i = 0;
 	while(1){
+		//since the OVR bit is set to 1.the DMA transfers do not work
+		//run DMA stuff here. i dont think the DMA is passing the values into buffer
 		uint16_t value = Get_ADC_Channel(i);
+		//ADC_Buffer[i] = value;
 		i++;
 		i %= 8;
+		ADC1->ISR &= ~(0x1E);//doesnt clear bits
 	}
 }
 
@@ -63,7 +69,7 @@ void vGeneralTaskInit(void){
    xTaskCreate(ADCTask,
     	(const signed char *)"ADCTask",
     	configMINIMAL_STACK_SIZE,
-   		ADC1,                 // pvParameters
+   		NULL,                 // pvParameters
     	tskIDLE_PRIORITY + 1, // uxPriority
     	NULL              ); // pvCreatedTask
 }
@@ -72,7 +78,7 @@ int
 main(int argc, char* argv[])
 {
 	//GPIO + ADC1 + DMA
-	initADCPins();
+	init();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
