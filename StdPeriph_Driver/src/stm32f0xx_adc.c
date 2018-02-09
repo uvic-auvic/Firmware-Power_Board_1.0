@@ -884,7 +884,7 @@ uint16_t ADC_GetConversionValue(ADC_TypeDef* ADCx)
  ===============================================================================
           ##### DMA Configuration functions #####
  ===============================================================================
-    [..] This section provides functions allowing to configure the DMA for ADC hannels.
+    [..] This section provides functions allowing to configure the DMA for ADC channels.
          Since converted channel values are stored into a unique data register, 
          it is useful to use DMA for conversion of more than one channel. This 
          avoids the loss of the data already stored in the ADC Data register. 

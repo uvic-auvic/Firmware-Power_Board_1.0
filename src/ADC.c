@@ -1,19 +1,23 @@
 #include "stm32f0xx.h"
-#include "stm32f0xx_adc.h"
-
 #include "ADC.h"
 
 extern uint16_t ADC_Buffer[BUFFER_SIZE];
 
-static void DeInitBuffer(uint16_t *Buff){
+static void DeInitBuffer (uint16_t *Buff){
 	for(uint32_t i = 0; i<BUFFER_SIZE;i++){
 			Buff[i] = 0;
 		}
 }
 
+static void ADC_Calibration (){//MAKE SURE ADEN = 0
+	ADC1->CR &= ~(0x1);
+	ADC1->CR |= 214748648;//doesnt set to 1
+	while((ADC1->CR & 0x80000000) != 0){
+		//ADD SOME STUFF FOR TIME-OUT MANAGEMENT
+	}
+}
 
-//GPIO
-static void initADCPins_GPIO (){
+static void init_GPIO (){
 	//Enable peripheral clock for GPIOA
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
@@ -28,86 +32,55 @@ static void initADCPins_GPIO (){
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 }
-
-//ADC1 ON as cont. checking
-static void initADCPins_ADC (){
-	//Enable Peripheral clock for ADC1
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-
-	//ADC1 Structure
-	ADC_InitTypeDef ADC_InitStructure;
-	ADC_StructInit(&ADC_InitStructure);
-
-	ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
-
-	ADC_InitStructure.ADC_ExternalTrigConvEdge = 0;
-	ADC_InitStructure.ADC_ExternalTrigConv = 0;
-	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
-
-	//Load Structure into control and status register
-	ADC_Init(ADC1, &ADC_InitStructure);
-
-	//Config Channel
-	ADC_ChannelConfig(ADC1, ADC_Channel_1, ADC_SampleTime_1_5Cycles);
-	ADC_ChannelConfig(ADC1, ADC_Channel_2, ADC_SampleTime_1_5Cycles);
-	ADC_ChannelConfig(ADC1, ADC_Channel_3, ADC_SampleTime_1_5Cycles);
-	ADC_ChannelConfig(ADC1, ADC_Channel_4, ADC_SampleTime_1_5Cycles);
-
-	//Enable peripheral
-	ADC_Cmd(ADC1, ENABLE);
-
-	//Enable interrupt
-	ADC_ITConfig(ADC1, ADC_IT_ADRDY, ENABLE);
-
-	uint32_t value = ADC_GetCalibrationFactor(ADC1);
+//ADC1 Continuous Conversion Software Trigger
+static void init_ADC (){
+	RCC->APB2ENR |= 0x200;
+	ADC_Calibration();
+	ADC1->CR |= 0x1;//ADEN: ADC Enabled
+	ADC1->CFGR1 |= 0x3000;
+		/*Bits Enabled
+		 * CONT: Continuous Conversion mode
+		 * OVRMOD: Overrun management Mode =
+		 * 			DR reg is overwritten with last conversion
+		 * 			result when overrun is detected.
+		 */
+	ADC1->IER |= 0x1C;
+		/*Bits Enabled
+		 * EOCIE: End of Conversion Interrupt
+		 * EOSEQIE: End of Conversion Sequence Interrupt
+		 * OVRIE: Overrun Interrupt
+		 */
+	ADC1->CHSELR |= 0xFF;//Channel 1 -> 7 for conversion
 }
 
-static void initADCPins_DMA(){
-	//Enable Peripheral Clock for DMA
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-
-	//Enable DMA for ADC1
-	ADC_DMACmd(ADC1, ENABLE);
-	ADC_DMARequestModeConfig(ADC1, ADC_CFGR1_DMACFG);
-
-	//Create Structure
-	DMA_InitTypeDef DMA_InitStructure;
-	DMA_StructInit(&DMA_InitStructure);
-
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-	DMA_InitStructure.DMA_BufferSize = BUFFER_SIZE;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = &(ADC1->DR);
-	DMA_InitStructure.DMA_MemoryBaseAddr = ADC_Buffer;
-
-	//Default Init Channel 1
-	DMA_DeInit(DMA1_Channel1);
-	//Load val's into Channel
-	DMA_Init(DMA1_Channel1, &DMA_InitStructure);
-	//Enable DMA Interrupt
-	DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
-	//Enable Channel 1
-	DMA1_Channel1->CCR |= DMA_CCR_EN;
+static void init_DMA (uint16_t *Buff){
+	RCC->AHBENR |= 0x1;//DMAEN: DMA Clock
+	ADC1->CFGR1 |= 0x3;
+		/* DMAEN: Direct Memory Access
+		 * DMACFG: Direct Memory Access Configuration
+		 */
+	DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));//Peripheral Address [we only want 16-bits to be read
+	DMA1_Channel1->CMAR = (uint32_t) Buff;//Memory Address
+	DMA1_Channel1->CNDTR = BUFFER_SIZE;
+	DMA1_Channel1->CCR = 0x20;//Circular Mode
+	DMA1_Channel1->CCR |= 0x54A;
+		/*Bits Enabled
+		 * MSIZE: Memory Size is 16-bits
+		 * PSIZE: Peripheral Size is 16-bit
+		 * PINC: Peripheral Increment Mode
+		 * TEIE: Transfer Error Interrupt
+		 * TCIE: Transfer Complete Interrupt
+		 */
+	DMA1_Channel1->CCR |= 0x1;//EN: Channel Enable
 }
 
-extern uint16_t Get_ADC_Channel(enum ADC_Channels channel){
+extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
 	return ADC_Buffer[channel];
 }
 
-extern void initADCPins(){
-	//init the ADC buffer;
-	DeInitBuffer(ADC_Buffer);
-	//turns PA0->PA7 ON
-	initADCPins_GPIO();
-	//turns the ADC ON
-	initADCPins_ADC();
-
-	initADCPins_DMA();
-	ADC_StartOfConversion(ADC1);
+extern void init (){
+	DeInitBuffer(ADC_Buffer);//Init the ADC buffer;
+	init_GPIO();//turns PA0->PA7 ON
+	init_ADC();//turns the ADC ON
+	init_DMA(ADC_Buffer);//turns DMA ON
 }
-
