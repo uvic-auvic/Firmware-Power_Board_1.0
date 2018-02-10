@@ -10,10 +10,10 @@ static void DeInitBuffer (uint16_t *Buff){
 }
 
 static void ADC_Calibration (){//MAKE SURE ADEN = 0
-	ADC1->CR &= ~(0x1);
-	ADC1->CR |= 214748648;//doesnt set to 1
-	while((ADC1->CR & 0x80000000) != 0){
-		//ADD SOME STUFF FOR TIME-OUT MANAGEMENT
+	ADC1->CR &= ~ADC_CR_ADEN;
+	ADC1->CR |= ADC_CR_ADCAL;//WHY WONT YOU TURN TO 1
+	while((ADC1->CR & ADC_CR_ADCAL) != 0){
+		//TIME-OUT MANAGEMENT
 	}
 }
 
@@ -37,35 +37,27 @@ static void init_ADC (){
 	RCC->APB2ENR |= 0x200;
 	ADC_Calibration();
 	ADC1->CR |= 0x1;//ADEN: ADC Enabled
-	ADC1->CFGR1 |= 0x3000;
-		/*Bits Enabled
-		 * CONT: Continuous Conversion mode
-		 * OVRMOD: Overrun management Mode =
-		 * 			DR reg is overwritten with last conversion
-		 * 			result when overrun is detected.
-		 */
+	ADC1->CFGR1 |= 0x2000;//CONT: Continuous Conversion mode
 	ADC1->IER |= 0x1C;
-		/*Bits Enabled
-		 * EOCIE: End of Conversion Interrupt
+		/* EOCIE: End of Conversion Interrupt
 		 * EOSEQIE: End of Conversion Sequence Interrupt
 		 * OVRIE: Overrun Interrupt
 		 */
 	ADC1->CHSELR |= 0xFF;//Channel 1 -> 7 for conversion
 }
 
-static void init_DMA (uint16_t *Buff){
+static void init_DMA (){
 	RCC->AHBENR |= 0x1;//DMAEN: DMA Clock
 	ADC1->CFGR1 |= 0x3;
 		/* DMAEN: Direct Memory Access
 		 * DMACFG: Direct Memory Access Configuration
 		 */
-	DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));//Peripheral Address [we only want 16-bits to be read
-	DMA1_Channel1->CMAR = (uint32_t) Buff;//Memory Address
+	DMA1_Channel1->CPAR = (uint16_t) (&(ADC1->DR));//Peripheral Address
+	DMA1_Channel1->CMAR = (uint16_t) ADC_Buffer;//Memory Address
 	DMA1_Channel1->CNDTR = BUFFER_SIZE;
 	DMA1_Channel1->CCR = 0x20;//Circular Mode
 	DMA1_Channel1->CCR |= 0x54A;
-		/*Bits Enabled
-		 * MSIZE: Memory Size is 16-bits
+		/* MSIZE: Memory Size is 16-bits
 		 * PSIZE: Peripheral Size is 16-bit
 		 * PINC: Peripheral Increment Mode
 		 * TEIE: Transfer Error Interrupt
@@ -75,6 +67,8 @@ static void init_DMA (uint16_t *Buff){
 }
 
 extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
+	char word = channel;
+	uint16_t TEST = ADC_Buffer[channel];
 	return ADC_Buffer[channel];
 }
 
@@ -82,5 +76,5 @@ extern void init (){
 	DeInitBuffer(ADC_Buffer);//Init the ADC buffer;
 	init_GPIO();//turns PA0->PA7 ON
 	init_ADC();//turns the ADC ON
-	init_DMA(ADC_Buffer);//turns DMA ON
+	init_DMA();//turns DMA ON
 }
