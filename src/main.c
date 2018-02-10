@@ -31,6 +31,8 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+uint16_t Values[BUFFER_SIZE];
+
 void blinkyTask(void *dummy){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 	GPIOC->MODER |= 0x50000;
@@ -44,18 +46,30 @@ void blinkyTask(void *dummy){
 }
 
 void ADCTask(){
-	ADC1->ISR |= 0x1;//ADRDY: ADC Ready
 	ADC1->CR |= 0x4;//ADSTART: ADC Start Conversion Command
 	uint16_t i = 0;
-	while(1){
-		//since the OVR bit is set to 1.the DMA transfers do not work
-		//run DMA stuff here. i dont think the DMA is passing the values into buffer
-		uint16_t value = Get_ADC_Channel(i);
-		//ADC_Buffer[i] = value;
+	while(1){//since the OVR bit is set to 1.the DMA transfers do not work
+		uint16_t value2 = ADC_GetConversionValue(ADC1);
+		uint16_t value = Get_ADC_Channel(ADC_Water_Sensor);
+		Values[i] = value;
+		uint16_t InputValue = Values[i];
 		i++;
 		i %= 8;
-		ADC1->ISR &= ~(0x1E);//doesnt clear bits
+		DMA1->IFCR |= 0x7;
+			/* CGIF1: Channel 1 Global Interrupt Clear
+			 * CTCIF1: Channel 1 Transfer Complete Clear
+			 * CHTIF1: Channel 1 Half Transfer Clear
+			 */
+		ADC1->ISR &= ~0x1E; //THEY DONT CLEAR
+			/* OVR
+			 * EOS
+			 * EOC
+			 * EOSMP
+			 */
 	}
+	//Get_ADC_Channel only returns 0. but ADC_GetConversionValue(ADC1) returns values.
+	//DMA is configured correctly. so the problem could be how the values are getting retrieved.
+	//the ADC_Buffer has all values set to 0 by line 59
 }
 
 void vGeneralTaskInit(void){
