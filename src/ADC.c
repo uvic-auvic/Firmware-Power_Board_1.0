@@ -58,7 +58,6 @@ static void init_DMA (){
 }
 
 extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
-	uint16_t TEST = ADC_Buffer[channel];
 	return ADC_Buffer[channel];
 }
 

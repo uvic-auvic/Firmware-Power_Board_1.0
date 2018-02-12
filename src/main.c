@@ -31,7 +31,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-uint16_t Values[BUFFER_SIZE];
 
 void blinkyTask(void *dummy){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
@@ -51,10 +50,7 @@ void ADCTask(){
 		ADC1->CR |= ADC_CR_ADSTART;
 		ADC1->CR |= ADC_CR_ADSTP;
 		ADC1->ISR |= ADC_ISR_OVR | ADC_ISR_EOS | ADC_ISR_EOSMP;
-		uint16_t value2 = ADC_GetConversionValue(ADC1);
-		uint16_t value = Get_ADC_Channel(i);
-		Values[i] = value;
-		uint16_t InputValue = Values[i];
+		uint32_t value = Get_ADC_Channel(i);
 		i++;
 		i %= 8;
 	}
