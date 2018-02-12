@@ -9,7 +9,7 @@ static void DeInitBuffer (uint16_t *Buff){
 		}
 }
 
-static void ADC_Calibration (){//MAKE SURE ADEN = 0
+static void ADC_Calibration (){
 	ADC1->CR &= ~ADC_CR_ADEN;
 	ADC1->CR |= ADC_CR_ADCAL;//WHY WONT YOU TURN TO 1
 	while((ADC1->CR & ADC_CR_ADCAL) != 0){
@@ -34,40 +34,30 @@ static void init_GPIO (){
 }
 //ADC1 Continuous Conversion Software Trigger
 static void init_ADC (){
-	RCC->APB2ENR |= 0x200;
-	ADC_Calibration();
-	ADC1->CR |= 0x1;//ADEN: ADC Enabled
-	ADC1->CFGR1 |= 0x2000;//CONT: Continuous Conversion mode
-	ADC1->IER |= 0x1C;
-		/* EOCIE: End of Conversion Interrupt
-		 * EOSEQIE: End of Conversion Sequence Interrupt
-		 * OVRIE: Overrun Interrupt
-		 */
-	ADC1->CHSELR |= 0xFF;//Channel 1 -> 7 for conversion
+	RCC->APB2ENR |= RCC_APB2RSTR_ADC1RST;
+		ADC_Calibration();
+		ADC1->CR |= ADC_CR_ADEN;
+		ADC1->CFGR1 |= ADC_CFGR1_CONT;
+		ADC1->CHSELR |= ADC_CHSELR_CHSEL7 | ADC_CHSELR_CHSEL6
+					 | ADC_CHSELR_CHSEL5 | ADC_CHSELR_CHSEL4
+					 | ADC_CHSELR_CHSEL3 | ADC_CHSELR_CHSEL2
+					 | ADC_CHSELR_CHSEL1 | ADC_CHSELR_CHSEL0;
+		ADC1->IER |= ADC_IER_EOCIE | ADC_IER_EOSEQIE | ADC_IER_OVRIE;
 }
 
 static void init_DMA (){
-	RCC->AHBENR |= 0x1;//DMAEN: DMA Clock
-	ADC1->CFGR1 |= 0x3;
-		/* DMAEN: Direct Memory Access
-		 * DMACFG: Direct Memory Access Configuration
-		 */
-	DMA1_Channel1->CPAR = (uint16_t) (&(ADC1->DR));//Peripheral Address
-	DMA1_Channel1->CMAR = (uint16_t) ADC_Buffer;//Memory Address
-	DMA1_Channel1->CNDTR = BUFFER_SIZE;
-	DMA1_Channel1->CCR = 0x20;//Circular Mode
-	DMA1_Channel1->CCR |= 0x54A;
-		/* MSIZE: Memory Size is 16-bits
-		 * PSIZE: Peripheral Size is 16-bit
-		 * PINC: Peripheral Increment Mode
-		 * TEIE: Transfer Error Interrupt
-		 * TCIE: Transfer Complete Interrupt
-		 */
-	DMA1_Channel1->CCR |= 0x1;//EN: Channel Enable
+	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+		ADC1->CFGR1 |= ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG;
+		DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));		//Peripheral Address
+		DMA1_Channel1->CMAR = (uint32_t) ADC_Buffer;		//Memory Address
+		DMA1_Channel1->CNDTR = BUFFER_SIZE;					//Memory Size
+		DMA1_Channel1->CCR |= DMA_CCR_MINC		| DMA_CCR_MSIZE_0
+						   | DMA_CCR_PSIZE_0 	| DMA_CCR_TEIE
+						   | DMA_CCR_TCIE		| DMA_CCR_CIRC;
+		DMA1_Channel1->CCR |= DMA_CCR_EN;
 }
 
 extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
-	char word = channel;
 	uint16_t TEST = ADC_Buffer[channel];
 	return ADC_Buffer[channel];
 }

@@ -46,30 +46,19 @@ void blinkyTask(void *dummy){
 }
 
 void ADCTask(){
-	ADC1->CR |= 0x4;//ADSTART: ADC Start Conversion Command
 	uint16_t i = 0;
 	while(1){//since the OVR bit is set to 1.the DMA transfers do not work
+		ADC1->CR |= ADC_CR_ADSTART;
+		ADC1->CR |= ADC_CR_ADSTP;
+		ADC1->ISR |= ADC_ISR_OVR | ADC_ISR_EOS | ADC_ISR_EOSMP;
 		uint16_t value2 = ADC_GetConversionValue(ADC1);
-		uint16_t value = Get_ADC_Channel(ADC_Water_Sensor);
+		uint16_t value = Get_ADC_Channel(i);
 		Values[i] = value;
 		uint16_t InputValue = Values[i];
 		i++;
 		i %= 8;
-		DMA1->IFCR |= 0x7;
-			/* CGIF1: Channel 1 Global Interrupt Clear
-			 * CTCIF1: Channel 1 Transfer Complete Clear
-			 * CHTIF1: Channel 1 Half Transfer Clear
-			 */
-		ADC1->ISR &= ~0x1E; //THEY DONT CLEAR
-			/* OVR
-			 * EOS
-			 * EOC
-			 * EOSMP
-			 */
 	}
-	//Get_ADC_Channel only returns 0. but ADC_GetConversionValue(ADC1) returns values.
-	//DMA is configured correctly. so the problem could be how the values are getting retrieved.
-	//the ADC_Buffer has all values set to 0 by line 59
+	//the ADC_Buffer has all values set to 0 by line 53
 }
 
 void vGeneralTaskInit(void){
