@@ -35,26 +35,25 @@ static void init_GPIO (){
 //ADC1 Continuous Conversion Software Trigger
 static void init_ADC (){
 	RCC->APB2ENR |= RCC_APB2RSTR_ADC1RST;
-		ADC_Calibration();
-		ADC1->CR |= ADC_CR_ADEN;
-		ADC1->CFGR1 |= ADC_CFGR1_CONT;
-		ADC1->CHSELR |= ADC_CHSELR_CHSEL7 | ADC_CHSELR_CHSEL6
-					 | ADC_CHSELR_CHSEL5 | ADC_CHSELR_CHSEL4
-					 | ADC_CHSELR_CHSEL3 | ADC_CHSELR_CHSEL2
-					 | ADC_CHSELR_CHSEL1 | ADC_CHSELR_CHSEL0;
-		ADC1->IER |= ADC_IER_EOCIE | ADC_IER_EOSEQIE | ADC_IER_OVRIE;
+	ADC_Calibration();
+	ADC1->CR |= ADC_CR_ADEN;
+	ADC1->CFGR1 |= ADC_CFGR1_CONT;
+	ADC1->CHSELR |= ADC_CHSELR_CHSEL7	| ADC_CHSELR_CHSEL6
+				 | ADC_CHSELR_CHSEL5 	| ADC_CHSELR_CHSEL4
+				 | ADC_CHSELR_CHSEL3 	| ADC_CHSELR_CHSEL2
+				 | ADC_CHSELR_CHSEL1 	| ADC_CHSELR_CHSEL0;
+	ADC1->IER |= ADC_IER_EOCIE | ADC_IER_EOSEQIE | ADC_IER_OVRIE;
 }
 
 static void init_DMA (){
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-		ADC1->CFGR1 |= ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG;
-		DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));		//Peripheral Address
-		DMA1_Channel1->CMAR = (uint32_t) ADC_Buffer;		//Memory Address
-		DMA1_Channel1->CNDTR = BUFFER_SIZE;					//Memory Size
-		DMA1_Channel1->CCR |= DMA_CCR_MINC		| DMA_CCR_MSIZE_0
-						   | DMA_CCR_PSIZE_0 	| DMA_CCR_TEIE
-						   | DMA_CCR_TCIE		| DMA_CCR_CIRC;
-		DMA1_Channel1->CCR |= DMA_CCR_EN;
+	ADC1->CFGR1 |= ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG;
+	DMA1_Channel1->CPAR = (uint32_t) (&(ADC1->DR));		//Peripheral Address
+	DMA1_Channel1->CMAR = (uint32_t) ADC_Buffer;		//Memory Address
+	DMA1_Channel1->CNDTR = BUFFER_SIZE;					//Memory Size
+	DMA1_Channel1->CCR |= DMA_CCR_MINC		| DMA_CCR_MSIZE_0
+					   | DMA_CCR_PSIZE_0 	| DMA_CCR_CIRC;
+	DMA1_Channel1->CCR |= DMA_CCR_EN;
 }
 
 extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
@@ -66,4 +65,6 @@ extern void init (){
 	init_GPIO();//turns PA0->PA7 ON
 	init_ADC();//turns the ADC ON
 	init_DMA();//turns DMA ON
+
+	ADC1->CR |= ADC_CR_ADSTART;
 }
