@@ -47,14 +47,10 @@ void blinkyTask(void *dummy){
 void ADCTask(){
 	uint16_t i = 0;
 	while(1){
-		//ADC1->CR |= ADC_CR_ADSTART;
-		//ADC1->CR |= ADC_CR_ADSTP;
-		//ADC1->ISR |= ADC_ISR_OVR | ADC_ISR_EOS | ADC_ISR_EOSMP;
 		uint32_t value = Get_ADC_Channel(i);
 		i++;
 		i %= 8;
 	}
-	//the ADC_Buffer has all values set to 0 by line 53
 }
 
 void vGeneralTaskInit(void){
