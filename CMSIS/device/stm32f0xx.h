@@ -1151,7 +1151,7 @@ typedef struct
 #define  DMA_IFCR_CTEIF5                     ((uint32_t)0x00080000)        /*!< Channel 5 Transfer Error clear      */
 
 /*******************  Bit definition for DMA_CCR register  ********************/
-#define  DMA_CCR_EN                          ((uint32_t)0x00000001)        /*!<  enable                      */
+#define  DMA_CCR_EN                          ((uint32_t)0x00000001)        /*!< Channel enable                      */
 #define  DMA_CCR_TCIE                        ((uint32_t)0x00000002)        /*!< Transfer complete interrupt enable  */
 #define  DMA_CCR_HTIE                        ((uint32_t)0x00000004)        /*!< Half Transfer interrupt enable      */
 #define  DMA_CCR_TEIE                        ((uint32_t)0x00000008)        /*!< Transfer error interrupt enable     */
