@@ -1,3 +1,6 @@
+*.cfg
+STM32F0DISCOVERY.xml
+
 # Object files
 *.o
 *.ko
