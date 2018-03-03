@@ -18,5 +18,5 @@ uint16_t ADC_Buffer[BUFFER_SIZE];
 
 extern uint16_t Get_ADC_Channel(enum ADC_Channels channel);
 
-extern void init ();
+extern void initADC();
 #endif
