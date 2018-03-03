@@ -44,15 +44,6 @@ void blinkyTask(void *dummy){
 	}
 }
 
-void ADCTask(){
-	uint16_t i = 0;
-	while(1){
-		uint32_t value = Get_ADC_Channel(i);
-		i++;
-		i %= 8;
-	}
-}
-
 void vGeneralTaskInit(void){
    xTaskCreate(blinkyTask,
 		(const signed char *)"blinkyTask",
@@ -61,19 +52,11 @@ void vGeneralTaskInit(void){
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
 
-   xTaskCreate(ADCTask,
-    	(const signed char *)"ADCTask",
-    	configMINIMAL_STACK_SIZE,
-   		NULL,                 // pvParameters
-    	tskIDLE_PRIORITY + 1, // uxPriority
-    	NULL              ); // pvCreatedTask
-}
-
 int
 main(int argc, char* argv[])
 {
 	//GPIO + ADC1 + DMA
-	init();
+	initADC();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */

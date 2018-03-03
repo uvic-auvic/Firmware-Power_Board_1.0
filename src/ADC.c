@@ -59,7 +59,7 @@ extern uint16_t Get_ADC_Channel (enum ADC_Channels channel){
 	return ADC_Buffer[channel];
 }
 
-extern void init (){
+extern void initADC(){
 	DeInitBuffer(ADC_Buffer);//Init the ADC buffer;
 	init_GPIO();//turns PA0->PA7 ON
 	init_ADC();//turns the ADC ON
