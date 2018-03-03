@@ -73,7 +73,7 @@ int
 main(int argc, char* argv[])
 {
 	//GPIO + ADC1 + DMA
-	init();
+	initADC();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
