@@ -29,8 +29,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-
-
 void blinkyTask(void *dummy){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 	GPIOC->MODER |= 0x50000;
@@ -39,16 +37,10 @@ void blinkyTask(void *dummy){
 	GPIOC->ODR &= ~(0x100);
 	while(1){
 		GPIOC->ODR ^= 0x200;
-
 		vTaskDelay(500);
 	}
 }
-void SendData(int data){
 
-}
-void GetData(int data){
-
-}
 void vGeneralTaskInit(void){
     xTaskCreate(blinkyTask,
 		(const signed char *)"blinkyTask",
@@ -56,24 +48,17 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
-    xTaskCreate(blinkyTask,
-    		(const signed char *)"SendData",
-    		configMINIMAL_STACK_SIZE,
-    		NULL,                 // pvParameters
-    		tskIDLE_PRIORITY + 1, // uxPriority
-    		NULL              ); // pvCreatedTask */
-    xTaskCreate(blinkyTask,
-    		(const signed char *)"GetData",
-    		configMINIMAL_STACK_SIZE,
-    		NULL,                 // pvParameters
-    		tskIDLE_PRIORITY + 1, // uxPriority
-    		NULL              ); // pvCreatedTask */
 }
 
 int
 main(int argc, char* argv[])
 {
 	initUSART();
+	char input[] = "BangBang\n";
+	int size = sizeof(input)/sizeof(input[0]);
+	for(int i = 0; i < size; i++){
+		ReceiveChar(input[i]);
+	}
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
