@@ -51,7 +51,7 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
-
+}
 int
 main(int argc, char* argv[])
 {
