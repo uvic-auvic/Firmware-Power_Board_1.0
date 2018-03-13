@@ -54,11 +54,7 @@ int
 main(int argc, char* argv[])
 {
 	initUSART();
-	char input[] = "BangBang\n";
-	int size = sizeof(input)/sizeof(input[0]);
-	for(int i = 0; i < size; i++){
-		ReceiveChar(input[i]);
-	}
+
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();

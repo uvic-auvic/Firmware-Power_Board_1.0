@@ -1,24 +1,48 @@
 #include "USART.h"
 #include "stm32f0xx.h"
 
-static int Curr_Array_Index = 0;
+/* Definitions */
+#define MIN_COMMAND_LENGTH (4)
+#define MAX_COMMAND_LENGTH (5)
+#define MAX_OUPUT_DATA (10)
 
-char BuffTX[MAX_OUTPUT_DATA]; //= "hello!\n\r"
-char BuffRX[MAX_INPUT_DATA];
+/* Private Variables */
+static uint8_t bytes_to_send = (void*)0;
+char stringToSend[MAX_OUPUT_DATA] = "";
+char stringReceived[MAX_COMMAND_LENGTH] = "";
+int Curr_Pointer_Location = 0;
 
-/* Append the Char Received to BuffRX*/
-static void AppendToBuffRX(char Data){
-	BuffRX[Curr_Array_Index] = Data;
-	Curr_Array_Index++;
+/* Macros */
+static void ResetBuffer(){
+	for(int i = 0; i<MAX_COMMAND_LENGTH; i++){
+		stringReceived[i] = 0;
+	}
+	Curr_Pointer_Location = 0;
 }
 
-//PB6 and PB7
+static void AppendToBuffer(char Data){
+	stringReceived[Curr_Pointer_Location] = Data;
+	Curr_Pointer_Location++;
+}
+
+// ----------------------------------------------------------------------
+/*
+ *  @brief  Configures the USART1 pins on GPIO PA10 PA9
+             - PA10 = Receive
+           	 - PA9 = Transmit
+  * @param  None
+  * @retval None
+*/
 static void GPIO(){
-	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-	GPIOB->MODER |= GPIO_MODER_MODER6 | GPIO_MODER_MODER7;
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;/* AF mode */
+	GPIOA->AFR[1] |= 0x110; /* Enable AF1 */
 }
-
-//1 char = 8 bits
+/*
+ *  @brief  Configures USART1
+  * @param  None
+  * @retval None
+*/
 static void USART(){
 	/* Enable Peripheral */
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
@@ -26,79 +50,94 @@ static void USART(){
 	/* Baudrate set at 9600 Kbps */
 	USART1->BRR = 480000 / 96;
 
-	/* Enable Transmitter, Receiver, TC interrupt, RXNE interrupt, and USART*/
-	USART1->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE
-				| USART_CR1_RXNEIE | USART_CR1_TXEIE | USART_CR1_UE;
-		/* TXEIE will send an interrupt when the TDR register is empty*/
+	/* Enable      Transmitter   Receiver       RXNE interrupt     USART */
+	USART1->CR1 |= USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE | USART_CR1_UE;
 
-	/* polling idle frame Transmission */
-	while((USART1->ISR & USART_ISR_TC) != USART_ISR_TC)
+	/* Polling idle frame Transmission w/o clock */
+	while ((USART1->ISR & USART_ISR_TC) != USART_ISR_TC)
 	{
-		/* add time out here for a robust application */
+	 /* add time out here for a robust application */
 	}
-	USART1->ICR |= USART_ICR_TCCF;/* clear TC flag */
+	USART1->ICR |= USART_ICR_TCCF; /* Clear TC flag */
+	USART1->CR1 |= USART_CR1_TCIE; /* Enable TC interrupt */
 
-	//NVIC_EnableIRQ(USART1_IRQn);
-	//NVIC_SetPriority(USART1_IRQn,1);
+	/* Configure IT */
+	/* (3) Set priority for USART1_IRQn */
+	/* (4) Enable USART1_IRQn */
+	NVIC_SetPriority(USART1_IRQn, 0); /* (3) */
+	NVIC_EnableIRQ(USART1_IRQn); /* (4) */
 }
 
-extern void TransmitChar(uint16_t Data){
-	/* Start USART transmission */
-	USART1->TDR = (Data & (uint16_t)0x01FF);/* Clears TXE bit */
-	while((USART1->ISR & USART_ISR_TC) == 0){
-		/*After writing the last data into the USART_TDR register, wait until TC=1. This indicates
-		that the transmission of the last frame is complete. This is required for instance when
-		the USART is disabled or enters the Halt mode to avoid corrupting the last
-		transmission*/
-		//Wait for complete transfer.
-	}
-	USART1->ICR |= USART_ICR_TCCF;/* clear TC flag */
-
-}
-extern void ReceiveChar(char Char){
-	/*if(Char == '\n' || Char == '\r'){
-		AppendToBuffRX('\0');
-	}*/
-	USART1->RDR = Char;
-	char data = "";
-	/* Reading the Data will clear the RXNE flag*/
-	if ((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE)
-	{
-	 data = (uint16_t)(USART1->RDR & (uint16_t)0x01FF); /* Receive data, clear flag */
-	}
-	AppendToBuffRX(data);
-
-}
 extern void initUSART(){
 	GPIO();
 	USART();
 }
-/* IF THERE IS GOING TO BE AN ISSUE, IT MIGHT BE THE TXEIE BIT OR THE UINT16_t */
-/* A frame : 1 start bit followed by 7,8, or 9 data bits (parity control inc. if enabled),
- * ending with a number of stop-bits.
- */
-/*Character reception procedure
-1. Program the M bit in USART_CR1 to define the word length. 			DONE:KEEPING TO 8-BIT CHAR
-2. Select the desired baud rate using the baud rate register USART_BRR	DONE: 9600 Kbps
-3. Program the number of stop bits in USART_CR2.						DONE:KEEPING 1
-4. Enable the USART by writing the UE bit in USART_CR1 register to 1.	DONE
-5. Select DMA enable (DMAR) in USART_CR3 if multibuffer communication is to take
-	place. Configure the DMA register as explained in multibuffer communication.	NOT USING
-6. Set the RE bit USART_CR															DONE
-*/
 
-/*Character transmission procedure
-1. Program the M bit in USART_CR1 to define the word length.
-2. Select the desired baud rate using the USART_BRR register.
-3. Program the number of stop bits in USART_CR2.
-4. Enable the USART by writing the UE bit in USART_CR1 register to 1.
-5. Select DMA enable (DMAT) in USART_CR3 if multibuffer communication is to take
-place. Configure the DMA register as explained in multibuffer communication.
-6. Set the TE bit in USART_CR1 to send an idle frame as first transmission.
-7. Write the data to send in the USART_TDR register (this clears the TXE bit). Repeat this
-for each data to be transmitted in case of single buffer.
-8.
+// ----------------------------------------------------------------------------------
+static void TransmitChar(uint8_t Data){
+	/* Start USART transmission */
+	USART1->TDR = Data; /* Clears TXE bit */
+	while((USART1->ISR & USART_ISR_TC) == 0){
+		/* After writing into the USART_TDR register, wait until TC=1. This indicates that the
+		 * transmission of the last frame is complete. This is required when the USART is
+		 * disabled or enters the Halt mode to avoid corrupting the last transmission */
+	}
+	USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
+}
 
-During transmission: Transmission Complete, Clear to Send, Transmit data Register
-empty interrupt.
- */
+static void ReceiveChar(char charToReceive){
+	/* First, check for the Null terminator */
+	if(charToReceive == '\n'){
+		AppendToBuffer('\0');
+		if(Curr_Pointer_Location >= MIN_COMMAND_LENGTH){
+			AppendToBuffer(charToReceive);
+		}
+		ResetBuffer();
+	}
+	/* Second, check if the index is at max length */
+	else if(Curr_Pointer_Location == MAX_COMMAND_LENGTH){
+		ResetBuffer();
+	}
+	else{
+		AppendToBuffer(charToReceive);
+	}
+}
+
+/* Handles USART1 interrupt requests */
+void USART1_IRQHandler(void)
+{
+	uint8_t charToReceive;
+	static uint8_t outputIndx = 0;
+	int size_of_Buff = sizeof(stringToSend)/sizeof(stringToSend[0]);
+
+	/* Send Out the String */
+	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
+		bytes_to_send--;
+		outputIndx++;
+		if(bytes_to_send == 0){
+			USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
+			outputIndx = 0;
+
+			/* If Buff is not empty, Continue until it is */
+			if(size_of_Buff != 0){
+				int i = size_of_Buff;
+				while(i > 0)
+					TransmitChar(stringToSend[i]);
+			}
+		}
+		else{
+			/* Clear TC flag and Fill TDR with a new char */
+			USART1->TDR = stringToSend[outputIndx];
+		}
+	}
+	/* Else receive the string */
+	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
+		charToReceive = (uint8_t)(USART1->RDR); /* Receive Data and Clear Flag */
+		ReceiveChar(charToReceive);
+	}
+	/* If not top 2, error has occurred then turn off NVIC */
+	else{
+		NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
+	}
+
+}
