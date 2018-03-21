@@ -15,6 +15,7 @@
 #include "stm32f0xx_exti.h"
 #include "stm32f0xx_syscfg.h"
 #include "stm32f0xx.h"
+#include "stm32f0xx_adc.h"
 
 #include "FreeRTOSConfig.h"
 
@@ -22,8 +23,10 @@
 #include "task.h"
 #include "USART.h"
 
+#include "ADC.h"
+
 // Sample pragmas to cope with warnings. Please note the related line at
-// the end of this function, used to pop the compilfer diagnostics status.
+// the end of this function, used to pop the compiler diagnostics status.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
@@ -42,18 +45,19 @@ void blinkyTask(void *dummy){
 }
 
 void vGeneralTaskInit(void){
-    xTaskCreate(blinkyTask,
+   xTaskCreate(blinkyTask,
 		(const signed char *)"blinkyTask",
 		configMINIMAL_STACK_SIZE,
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
 }
-
 int
 main(int argc, char* argv[])
 {
 	initUSART();
+	//GPIO + ADC1 + DMA
+	initADC();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
