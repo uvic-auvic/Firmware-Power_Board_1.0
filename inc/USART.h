@@ -5,4 +5,6 @@
 
 extern void initUSART();
 
+extern void USART_Transmit(char* Msg);
+
 #endif /* USART_H_ */

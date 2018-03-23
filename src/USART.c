@@ -1,31 +1,36 @@
+#include <string.h>
+
 #include "USART.h"
 #include "stm32f0xx.h"
+#include "Buffer.h"
 
 /* Definitions */
-#define MIN_COMMAND_LENGTH (4)
-#define MAX_COMMAND_LENGTH (5)
-#define MAX_OUPUT_DATA (10)
+#define MAX_LENGTH (8)
 
 /* Private Variables */
-static uint8_t bytes_to_send = (void*)0;
-char stringToSend[MAX_OUPUT_DATA] = "";
-char stringReceived[MAX_COMMAND_LENGTH] = "";
+
+static uint8_t bytes_to_send = 0;
+char RXBuffer[MAX_LENGTH] = "";
 int Curr_Pointer_Location = 0;
 
+CharBuffer_t TempBuff;
+
 /* Macros */
-static void ResetBuffer(){
-	for(int i = 0; i<MAX_COMMAND_LENGTH; i++){
-		stringReceived[i] = 0;
+static void ResetRXBuffer(){
+	for(int i = 0; i < MAX_LENGTH; i++){
+		RXBuffer[i] = 0;
 	}
 	Curr_Pointer_Location = 0;
 }
 
-static void AppendToBuffer(char Data){
-	stringReceived[Curr_Pointer_Location] = Data;
+static void AppendToRXBuffer(char Data){
+	RXBuffer[Curr_Pointer_Location] = Data;
 	Curr_Pointer_Location++;
 }
-
-// ----------------------------------------------------------------------
+static uint8_t Ret_Curr_Val_RXBuffer(int indx){
+	return RXBuffer[indx];
+}
+// ---------------------------------------------------------------------------------- */
 /*
  *  @brief  Configures the USART1 pins on GPIO PA10 PA9
              - PA10 = Receive
@@ -33,17 +38,17 @@ static void AppendToBuffer(char Data){
   * @param  None
   * @retval None
 */
-static void GPIO(){
+static void Configure_GPIO(){
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;/* AF mode */
 	GPIOA->AFR[1] |= 0x110; /* Enable AF1 */
 }
-/*
- *  @brief  Configures USART1
+
+/*  @brief  Configures USART1
   * @param  None
   * @retval None
 */
-static void USART(){
+static void Configure_USART(){
 	/* Enable Peripheral */
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 
@@ -69,11 +74,13 @@ static void USART(){
 }
 
 extern void initUSART(){
-	GPIO();
-	USART();
+	/* Store the handle of the calling task. */
+	ResetRXBuffer();
+	Configure_GPIO();
+	Configure_USART();
 }
 
-// ----------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------- */
 static void TransmitChar(uint8_t Data){
 	/* Start USART transmission */
 	USART1->TDR = Data; /* Clears TXE bit */
@@ -87,57 +94,55 @@ static void TransmitChar(uint8_t Data){
 
 static void ReceiveChar(char charToReceive){
 	/* First, check for the Null terminator */
-	if(charToReceive == '\n'){
-		AppendToBuffer('\0');
-		if(Curr_Pointer_Location >= MIN_COMMAND_LENGTH){
-			AppendToBuffer(charToReceive);
+	/*if(charToReceive == '\n'){
+		AppendToRXBuffer('\0');
+		/* Send each Value in RXBuffer to TDR Register */
+		/*for(int i = 0; i <= Curr_Pointer_Location; i++){
+			int CurrChar = Ret_Curr_Val_RXBuffer(i);
+			TransmitChar(CurrChar);
 		}
-		ResetBuffer();
+		ResetRXBuffer();
 	}
 	/* Second, check if the index is at max length */
-	else if(Curr_Pointer_Location == MAX_COMMAND_LENGTH){
-		ResetBuffer();
+	/*else if(Curr_Pointer_Location == MAX_LENGTH){
+		ResetRXBuffer();
 	}
 	else{
-		AppendToBuffer(charToReceive);
+		AppendToRXBuffer(charToReceive);
+	}*/
+	if(charToReceive == '\n'){
+		AppendToRXBuffer('\0');
+	}
+	AppendToRXBuffer(charToReceive);
+	USART1->TDR = charToReceive;
+}
+
+void USART1_IRQHandler(){
+	uint8_t charToReceive = 0;
+	//static uint16_t outputLength = sizeof(TXBuffer)/sizeof(TXBuffer[0]);
+
+	/* Send Char Out */
+	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
+		/*for(int i = 1; i <= outputLength; i++){
+			bytes_to_send = TXBuffer[i];
+			USART1->TDR = bytes_to_send;
+		}*/
+		USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
+	}
+	/* Receive Char */
+	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
+		charToReceive = (uint8_t)(USART1->RDR); /* Receive data, clear flag */
+		ReceiveChar(charToReceive);
+	}
+	/* Disable USART1_IRQn */
+	else{
+		NVIC_DisableIRQ(USART1_IRQn);
 	}
 }
 
-/* Handles USART1 interrupt requests */
-void USART1_IRQHandler(void)
-{
-	uint8_t charToReceive;
-	static uint8_t outputIndx = 0;
-	int size_of_Buff = sizeof(stringToSend)/sizeof(stringToSend[0]);
-
-	/* Send Out the String */
-	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
-		bytes_to_send--;
-		outputIndx++;
-		if(bytes_to_send == 0){
-			USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
-			outputIndx = 0;
-
-			/* If Buff is not empty, Continue until it is */
-			if(size_of_Buff != 0){
-				int i = size_of_Buff;
-				while(i > 0)
-					TransmitChar(stringToSend[i]);
-			}
-		}
-		else{
-			/* Clear TC flag and Fill TDR with a new char */
-			USART1->TDR = stringToSend[outputIndx];
-		}
+extern void USART_Transmit(char* Msg){
+	for(int i = 0; i <= strlen(Msg); i++){
+		USART1->TDR = Msg[i];
 	}
-	/* Else receive the string */
-	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
-		charToReceive = (uint8_t)(USART1->RDR); /* Receive Data and Clear Flag */
-		ReceiveChar(charToReceive);
-	}
-	/* If not top 2, error has occurred then turn off NVIC */
-	else{
-		NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
-	}
-
+	USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
 }
