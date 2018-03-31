@@ -19,7 +19,6 @@ typedef struct Buffer{
 
 typedef struct CharBuffer{
 	char data[MAX_BUFFER_SIZE];
-	uint8_t data_len[MAX_BUFFER_SIZE];
 	uint8_t idx_to_load; // Stores index where new element should go
 	uint8_t idx_to_pop; // Stores index of the next element to remove
 	uint8_t size; // Stores the number of elements in the buffer
@@ -35,11 +34,12 @@ extern int Buffer_overflow(Buffer_t* b);
 extern void Buffer_init();
 
 extern void CharBuffer_add(CharBuffer_t* b, const char character);
-extern int CharBuffer_pop(CharBuffer_t* b, char data);
+extern void CharBuffer_pop(CharBuffer_t* b, char data);
 extern int CharBuffer_size(CharBuffer_t* b);
 extern int CharBuffer_overflow(CharBuffer_t* b);
 extern void CharBuffer_init();
 
+extern void CharBufferToBuffer(CharBuffer_t* Src, Buffer_t* Dest);
 //-----------------------------------------------
 
 #endif

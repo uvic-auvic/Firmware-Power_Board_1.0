@@ -5,28 +5,13 @@
 #include "Buffer.h"
 
 /* Definitions */
-#define MAX_LENGTH (8)
+#define MAX_LENGTH (2)
 
-/* Private Variables */
-char RXBuffer[MAX_LENGTH] = "";
-int Curr_Pointer_Location = 0;
+/* Global Variables */
+CharBuffer_t RXBuffer;
+Buffer_t Buffer1;
 
-CharBuffer_t TempBuff;
-
-/* Macros */
-static void DeInitRXBuffer(){
-	for(int i = 0; i < MAX_LENGTH; i++){
-		RXBuffer[i] = 0;
-	}
-	Curr_Pointer_Location = 0;
-}
-
-static void AppendToRXBuffer(char CharToReceive){
-	RXBuffer[Curr_Pointer_Location] = CharToReceive;
-	Curr_Pointer_Location++;
-}
-
-// ---------------------------------------------------------------------------------- */
+/* -------------------------------- Configuration ------------------------------------ */
 /*
  *  @brief  Configures the USART1 pins on GPIO PA10 PA9
              - PA10 = Receive
@@ -39,7 +24,6 @@ static void Configure_GPIO(){
 	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;/* AF mode */
 	GPIOA->AFR[1] |= 0x110; /* Enable AF1 */
 }
-
 /*  @brief  Configures USART1
   * @param  None
   * @retval None
@@ -70,26 +54,30 @@ static void Configure_USART(){
 }
 
 extern void initUSART(){
-	/* Store the handle of the calling task. */
-	DeInitRXBuffer();
+	CharBuffer_init(&RXBuffer);
+	Buffer_init(&Buffer1);
 	Configure_GPIO();
 	Configure_USART();
 }
 
-// ---------------------------------------------------------------------------------- */
+/* ---------------------------------- Function -------------------------------------- */
 inline static void ReceiveChar(char charToReceive){
 	/* First, check for the Null terminator */
 	if(charToReceive == '\n'){
-		AppendToRXBuffer('\0');
-		DeInitRXBuffer();
+		CharBuffer_add(&RXBuffer,'\0');
+		CharBufferToBuffer(&RXBuffer, &Buffer1);
+		CharBuffer_init(&RXBuffer);
 	}
 	/* Second, check if the index is at max length */
-	else if(Curr_Pointer_Location == MAX_LENGTH){
-		DeInitRXBuffer();
+	else if(CharBuffer_size(&RXBuffer) == MAX_LENGTH){
+		CharBufferToBuffer(&RXBuffer, &Buffer1);
+		CharBuffer_init(&RXBuffer);
 	}
 	else{
-		AppendToRXBuffer(charToReceive);
+		CharBuffer_add(&RXBuffer, charToReceive);
 	}
+	CharBuffer_t Test = RXBuffer;
+	Buffer_t Test2 = Buffer1;
 }
 
 void USART1_IRQHandler(){
@@ -103,7 +91,6 @@ void USART1_IRQHandler(){
 	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
 		charToReceive = (uint8_t)(USART1->RDR); /* Receive data, clear flag */
 		ReceiveChar(charToReceive);
-		USART1->TDR = charToReceive;
 	}
 	/* Disable USART1_IRQn */
 	else{

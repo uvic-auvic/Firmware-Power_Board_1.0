@@ -58,8 +58,6 @@ main(int argc, char* argv[])
 	initUSART();
 	//GPIO + ADC1 + DMA
 	initADC();
-
-	//USART_Transmit("HELLO ");
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
