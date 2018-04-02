@@ -115,30 +115,29 @@ extern int CharBuffer_overflow(CharBuffer_t* b){
 }
 
 extern void CharBufferToBuffer(CharBuffer_t* Src, Buffer_t* Dest){
-	int len = Src->size;
+	uint8_t len = Src->size;
 	char tempString[MAX_BUFFER_DATA] = "";
-	for(int i = 0; i < len; i++){
-		// Pop oldest element and store it in data
-		tempString[i] = Src->data[Src->idx_to_pop];
-		Src->idx_to_pop++;
-		Src->idx_to_pop %= MAX_BUFFER_SIZE;
-		Src->size--;
-	}
-	int tempStringLen = strlen(tempString);
-	// Insert element
-		memcpy(Dest->data[Dest->idx_to_load], tempString, tempStringLen);
-		Dest->data_len[Dest->idx_to_load] = tempStringLen;
+	if(len != 0){
+		for(int i = 0; i < len; i++){
+			// Pop oldest element and store it in data
+			tempString[i] = Src->data[Src->idx_to_pop];
+			Src->idx_to_pop++;
+			Src->idx_to_pop %= MAX_BUFFER_SIZE;
+			Src->size--;
+		}
+		// Insert element
+		memcpy(Dest->data[Dest->idx_to_load], tempString, len);
+		Dest->data_len[Dest->idx_to_load] = len;
 		Dest->idx_to_load++;
 		Dest->idx_to_load %= MAX_BUFFER_SIZE;
 		Dest->size++;
-
 		// Check if buffer is full
-		if(Dest->size > MAX_BUFFER_SIZE)
-		{
+		if(Dest->size > MAX_BUFFER_SIZE){
 			// Remove oldest element
-			Src->idx_to_pop++;
+			Dest->idx_to_pop++;
 			Dest->idx_to_pop %= MAX_BUFFER_SIZE;
 			Dest->size--;
 			Dest->overflow_cnt++;
 		}
+	}
 };

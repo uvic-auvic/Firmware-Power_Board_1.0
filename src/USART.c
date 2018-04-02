@@ -1,11 +1,13 @@
 #include <string.h>
 
-#include "USART.h"
+
 #include "stm32f0xx.h"
+#include "USART.h"
 #include "Buffer.h"
 
 /* Definitions */
-#define MAX_LENGTH (2)
+#define MAX_LENGTH (8)
+
 
 /* Global Variables */
 CharBuffer_t RXBuffer;
@@ -52,7 +54,6 @@ static void Configure_USART(){
 	NVIC_SetPriority(USART1_IRQn, 0); /* (3) */
 	NVIC_EnableIRQ(USART1_IRQn); /* (4) */
 }
-
 extern void initUSART(){
 	CharBuffer_init(&RXBuffer);
 	Buffer_init(&Buffer1);
@@ -62,22 +63,24 @@ extern void initUSART(){
 
 /* ---------------------------------- Function -------------------------------------- */
 inline static void ReceiveChar(char charToReceive){
-	/* First, check for the Null terminator */
-	if(charToReceive == '\n'){
-		CharBuffer_add(&RXBuffer,'\0');
+	/*  Check for the Null terminator or Carriage return */
+	if((charToReceive == '\r') || (charToReceive == '\n')){
 		CharBufferToBuffer(&RXBuffer, &Buffer1);
 		CharBuffer_init(&RXBuffer);
+		for(int i = 0; i < RXBuffer.size; i++){
+			CharBuffer_add(&RXBuffer, '\0');
+		}
 	}
-	/* Second, check if the index is at max length */
-	else if(CharBuffer_size(&RXBuffer) == MAX_LENGTH){
-		CharBufferToBuffer(&RXBuffer, &Buffer1);
+	/* Check if the index is at max length */
+	else if(RXBuffer.size == MAX_LENGTH){
 		CharBuffer_init(&RXBuffer);
+		for(int i = 0; i < MAX_LENGTH; i++){
+			CharBuffer_add(&RXBuffer, '\0');
+		}
 	}
 	else{
 		CharBuffer_add(&RXBuffer, charToReceive);
 	}
-	CharBuffer_t Test = RXBuffer;
-	Buffer_t Test2 = Buffer1;
 }
 
 void USART1_IRQHandler(){
