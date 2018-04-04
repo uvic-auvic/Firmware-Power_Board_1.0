@@ -69,7 +69,10 @@ inline static void ReceiveChar(char charToReceive){
 	}
 	/* Check if the index is at max length */
 	else if(RXBuffer.size == MAX_LENGTH){
-		CharBuffer_to_Buffer(&RXBuffer, &Buffer1);
+		for(int i = 0; i < MAX_LENGTH; i++){
+			RXBuffer->data[i] = '\0';
+		}
+		CharBuffer_init(&RXBuffer);
 	}
 	else{
 		CharBuffer_add(&RXBuffer, charToReceive);
