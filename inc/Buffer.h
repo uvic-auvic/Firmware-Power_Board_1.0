@@ -39,7 +39,7 @@ extern int CharBuffer_size(CharBuffer_t* b);
 extern int CharBuffer_overflow(CharBuffer_t* b);
 extern void CharBuffer_init();
 
-extern void CharBufferToBuffer(CharBuffer_t* Src, Buffer_t* Dest);
+extern void CharBuffer_to_Buffer(CharBuffer_t* Src, Buffer_t* Dest);
 //-----------------------------------------------
 
 #endif

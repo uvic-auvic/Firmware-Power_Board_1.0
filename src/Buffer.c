@@ -113,25 +113,30 @@ extern int CharBuffer_overflow(CharBuffer_t* b){
 	b->overflow_cnt = 0;
 	return overflow;
 }
-
-extern void CharBufferToBuffer(CharBuffer_t* Src, Buffer_t* Dest){
+/*	Copy Values from CharBuffer to a temp string, then push into Buffer
+ *  	-Also resets the CharBuffer to default values
+ * */
+extern void CharBuffer_to_Buffer(CharBuffer_t* Src, Buffer_t* Dest){
 	uint8_t len = Src->size;
-	char tempString[MAX_BUFFER_DATA] = "";
 	if(len != 0){
+		char tempString[MAX_BUFFER_DATA] = "";
+		/* Copy into tempString and set to \0 in Src */
 		for(int i = 0; i < len; i++){
-			// Pop oldest element and store it in data
-			tempString[i] = Src->data[Src->idx_to_pop];
-			Src->idx_to_pop++;
-			Src->idx_to_pop %= MAX_BUFFER_SIZE;
-			Src->size--;
+			tempString[i] = Src->data[i];
+			Src->data[i] = '\0';
 		}
-		// Insert element
+		/* ReInit CharBuffer */
+		Src->idx_to_load = 0;
+		Src->idx_to_pop = 0;
+		Src->size = 0;
+		Src->overflow_cnt = 0;
+		/* Insert tempString into Dest */
 		memcpy(Dest->data[Dest->idx_to_load], tempString, len);
 		Dest->data_len[Dest->idx_to_load] = len;
 		Dest->idx_to_load++;
 		Dest->idx_to_load %= MAX_BUFFER_SIZE;
 		Dest->size++;
-		// Check if buffer is full
+		/* Check if Dest is full */
 		if(Dest->size > MAX_BUFFER_SIZE){
 			// Remove oldest element
 			Dest->idx_to_pop++;

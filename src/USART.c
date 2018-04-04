@@ -63,20 +63,13 @@ extern void initUSART(){
 
 /* ---------------------------------- Function -------------------------------------- */
 inline static void ReceiveChar(char charToReceive){
-	/*  Check for the Null terminator or Carriage return */
+	/*  Check for the Null terminator and Carriage return */
 	if((charToReceive == '\r') || (charToReceive == '\n')){
-		CharBufferToBuffer(&RXBuffer, &Buffer1);
-		CharBuffer_init(&RXBuffer);
-		for(int i = 0; i < RXBuffer.size; i++){
-			CharBuffer_add(&RXBuffer, '\0');
-		}
+		CharBuffer_to_Buffer(&RXBuffer, &Buffer1);
 	}
 	/* Check if the index is at max length */
 	else if(RXBuffer.size == MAX_LENGTH){
-		CharBuffer_init(&RXBuffer);
-		for(int i = 0; i < MAX_LENGTH; i++){
-			CharBuffer_add(&RXBuffer, '\0');
-		}
+		CharBuffer_to_Buffer(&RXBuffer, &Buffer1);
 	}
 	else{
 		CharBuffer_add(&RXBuffer, charToReceive);
@@ -84,16 +77,13 @@ inline static void ReceiveChar(char charToReceive){
 }
 
 void USART1_IRQHandler(){
-	uint8_t charToReceive = 0;
-
 	/* Clear the TC Flag after sending out from ReceiveChar */
 	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
 		USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
 	}
 	/* Receive Char */
 	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
-		charToReceive = (uint8_t)(USART1->RDR); /* Receive data, clear flag */
-		ReceiveChar(charToReceive);
+		ReceiveChar((uint8_t)(USART1->RDR));
 	}
 	/* Disable USART1_IRQn */
 	else{
