@@ -8,6 +8,7 @@
 #include "Buffer.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "ADC.h"
 
 #define CHAR_TO_INT (48)
 
@@ -35,9 +36,24 @@ extern void FSM(void *dummy){
 
 		char tempOutputString[MAX_BUFFER_SIZE] = "";
 
+		//WTH
+		if(strcmp(commandString, "WTH") == 0){
+			char bufs[5];
+			uint16_t pressure = Get_ADC_Channel(ADC_Water_Sensor);
+			itoa(pressure, bufs, 10);
+			UART_push_out_len(bufs, 5);
+			UART_push_out_len("\r\n", 2);
+		}
+
+		//WTR
+		else if(strcmp(commandString, "WTR") == 0){
+			uint16_t pressure = Get_ADC_Channel(ADC_Water_Sensor);
+			UART_push_out_len((char *)&pressure, 2);
+			UART_push_out_len("\r\n", 2);
+		}
 
 		//RID
-		if(strcmp(commandString, "RID") == 0){
+		else if(strcmp(commandString, "RID") == 0){
 			UART_push_out("Power_");
 			UART_push_out("Board");
 			UART_push_out("\r\n");

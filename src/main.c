@@ -18,12 +18,12 @@
 #include "stm32f0xx_adc.h"
 
 #include "FreeRTOSConfig.h"
-
 #include "FreeRTOS.h"
 #include "task.h"
-#include "FSM.h"
 
+#include "FSM.h"
 #include "ADC.h"
+#include "high_side_drives.h"
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -59,6 +59,8 @@ main(int argc, char* argv[])
 	//GPIO + ADC1 + DMA
 	initADC();
 	FSM_Init();
+	init_HSDs();
+	hsd_state(motor_power, on);
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
