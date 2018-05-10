@@ -21,6 +21,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "FSM.h"
 
 #include "ADC.h"
 
@@ -57,6 +58,7 @@ main(int argc, char* argv[])
 {
 	//GPIO + ADC1 + DMA
 	initADC();
+	FSM_Init();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
