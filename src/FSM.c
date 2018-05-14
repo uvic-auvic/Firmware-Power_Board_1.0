@@ -10,12 +10,34 @@
 #include "task.h"
 #include "ADC.h"
 #include "sensors.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #define CHAR_TO_INT (48)
 
 extern void FSM(void *dummy){
 	//initialize the UART
 	UART_init();
+
+	//For debugging only
+	while(1) {
+		uint16_t pressure = Get_External_Pressure();
+
+		//For debugging only
+		char output[6];
+		itoa(pressure, output, 10);
+//		UART_push_out_len(output, 5);
+//		UART_push_out("\r\n");
+
+		pressure = Get_ADC_Channel(ADC_Pressure_Sensor);
+		pressure = pressure * (float)3300/4095;
+		//For debugging only
+		itoa(pressure, output, 10);
+		UART_push_out_len(output, 5);
+		UART_push_out("\r\n");
+
+		vTaskDelay(500);
+	}
 
 	inputBuffer.size = 0;
 
@@ -39,6 +61,8 @@ extern void FSM(void *dummy){
 			UART_push_out("\r\n");
 		}
 
+		//Not working at the moment
+#warning "CRx command does not work yet. ADC value too high"
 		//CRx command
 		else if(strncmp(commandString, "CR", 2) == 0) {
 			uint16_t current = 0; //Current in mA
@@ -63,8 +87,15 @@ extern void FSM(void *dummy){
 
 			}
 
-			UART_push_out_len((char *)&current, 2);
+//			UART_push_out_len((char *)&current, 2);
+//			UART_push_out("\r\n");
+
+			//For debugging only
+			char output[6];
+			itoa(current, output, 10);
+			UART_push_out_len(output, 5);
 			UART_push_out("\r\n");
+
 		}
 
 		//VTx command
@@ -77,8 +108,9 @@ extern void FSM(void *dummy){
 					voltage = Get_Battery_Voltage(Right_Battery);
 				}
 
-				UART_push_out_len((char *)&voltage, 1);
+				UART_push_out_len((char *)&voltage, 2);
 				UART_push_out("\r\n");
+
 		}
 
 		//BPx command
@@ -133,7 +165,10 @@ extern void FSM(void *dummy){
 
 		//PEX command
 		else if (strcmp(commandString, "PEX") == 0) {
+			uint16_t pressure = Get_External_Pressure();
 
+			UART_push_out_len((char *)&pressure, 2);
+			UART_push_out_len("\r\n", 2);
 		}
 
 		//catch all error

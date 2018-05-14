@@ -53,9 +53,7 @@ void vGeneralTaskInit(void){
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
 }
-int
-main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	//GPIO + ADC1 + DMA
 	initADC();
 	FSM_Init();

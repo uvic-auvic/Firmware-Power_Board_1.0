@@ -13,14 +13,16 @@
 //Defines for calculations
 #define ADC_TO_PIN_VOLTAGE (3.3/4095)
 
-#define ADC_TO_BAT_VOLTAGE	(10090 * ADC_TO_PIN_VOLTAGE)
+#define ADC_VALUE_TO_BAT_VOLTAGE	(10090 * ADC_TO_PIN_VOLTAGE) //mV
 
-#define ADC_TO_CURRENT	(((float)121000/4096) * ADC_TO_PIN_VOLTAGE) //121000mA of current when pin is at 3.3V
+#define ADC_VALUE_TO_CURRENT	((float)121000/4095) //121000mA of current when pin is at 3.3V
 
-// Returns value in mV
+#define ADC_VALUE_TO_PRESSURE(x)	(((float)25/819)*(x) + 2.2) //millipsi
+
+// Returns value in mVd
 extern uint16_t Get_Battery_Voltage(battery_t battery) {
 	//It would be nice to have decimal places
-	uint8_t voltage = 0;
+	uint16_t voltage = 0;
 
 	if(battery == Left_Battery) {
 		voltage = Get_ADC_Channel(ADC_Left_Bat_Voltage);
@@ -28,14 +30,14 @@ extern uint16_t Get_Battery_Voltage(battery_t battery) {
 		voltage = Get_ADC_Channel(ADC_Right_Bat_Voltage);
 	}
 
-	voltage = ADC_TO_BAT_VOLTAGE * voltage;
+	voltage = ADC_VALUE_TO_BAT_VOLTAGE * voltage; //Could be different from actual value due to variation is resistance.
 	return voltage;
 }
 
 //Returns value in mA
 extern uint16_t Get_Battery_Current(battery_t battery) {
 	//It would be nice to have decimal places
-	uint8_t current = 0;
+	uint16_t current = 0;
 
 	if(battery == Left_Battery) {
 		current = Get_ADC_Channel(ADC_Left_Bat_Current);
@@ -43,7 +45,7 @@ extern uint16_t Get_Battery_Current(battery_t battery) {
 		current = Get_ADC_Channel(ADC_Right_Bat_Current);
 	}
 
-	current = ADC_TO_CURRENT * current;
+	current = ADC_VALUE_TO_CURRENT * current;
 	return current;
 }
 
@@ -58,7 +60,10 @@ extern uint16_t Get_Motors_Current() {
 }
 
 extern uint16_t Get_External_Pressure() {
-	//This uses ADC
+	uint16_t pressure = Get_ADC_Channel(ADC_Pressure_Sensor);
+	pressure = ADC_VALUE_TO_PRESSURE(pressure);
+	return pressure;
+
 }
 
 extern uint16_t Get_Internal_Pressure() {
