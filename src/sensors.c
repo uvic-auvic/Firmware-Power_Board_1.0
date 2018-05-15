@@ -19,7 +19,7 @@
 
 // psi = (2500/819)*ADC_VALUE + 220  for 3.3V supply to sensor
 // psi = (2500/1241)*ADC_VALUE + 220  for 5V supply to sensor
-#define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^2 psi, hecto-psi
+#define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^(-2) psi, hecto-psi
 
 // Returns value in mV
 extern uint16_t Get_Battery_Voltage(battery_t battery) {
@@ -54,11 +54,17 @@ extern uint16_t Get_Battery_Current(battery_t battery) {
 //Returns value in mA
 extern uint16_t Get_System_Current() {
 	//This uses an I2C device
+	//Returns constant for now so software can start testing
+
+	return 0x00FF;
 }
 
 //Returns value in mA
 extern uint16_t Get_Motors_Current() {
 	//This uses an I2C device
+	//Returns constant for now so software can start testing
+
+	return 0x00FF;
 }
 
 extern uint16_t Get_External_Pressure() {
@@ -69,14 +75,23 @@ extern uint16_t Get_External_Pressure() {
 
 extern uint16_t Get_Internal_Pressure() {
 	//This uses an I2C device
+	//Returns constant for now so software can start testing
+
+	return 0x00FF;
 }
 
 extern uint16_t Get_Temperature() {
 	//This uses an I2C device
+	//Returns constant for now so software can start testing
+
+	return 0x00FF;
 }
 
 extern uint16_t Get_Humidity() {
 	//This uses an I2C device
+	//Returns constant for now so software can start testing
+
+	return 0x00FF;
 }
 
 extern uint16_t Get_Water_Sensor_Value() {
