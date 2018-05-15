@@ -17,9 +17,11 @@
 
 #define ADC_VALUE_TO_CURRENT	((float)121000/4095) //121000mA of current when pin is at 3.3V
 
-#define ADC_VALUE_TO_PRESSURE(x)	(((float)25/819)*(x) + 2.2) //millipsi
+// psi = (2500/819)*ADC_VALUE + 220  for 3.3V supply to sensor
+// psi = (2500/1241)*ADC_VALUE + 220  for 5V supply to sensor
+#define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^2 psi, hecto-psi
 
-// Returns value in mVd
+// Returns value in mV
 extern uint16_t Get_Battery_Voltage(battery_t battery) {
 	//It would be nice to have decimal places
 	uint16_t voltage = 0;
@@ -63,7 +65,6 @@ extern uint16_t Get_External_Pressure() {
 	uint16_t pressure = Get_ADC_Channel(ADC_Pressure_Sensor);
 	pressure = ADC_VALUE_TO_PRESSURE(pressure);
 	return pressure;
-
 }
 
 extern uint16_t Get_Internal_Pressure() {

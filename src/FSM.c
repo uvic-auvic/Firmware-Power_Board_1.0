@@ -19,26 +19,6 @@ extern void FSM(void *dummy){
 	//initialize the UART
 	UART_init();
 
-	//For debugging only
-	while(1) {
-		uint16_t pressure = Get_External_Pressure();
-
-		//For debugging only
-		char output[6];
-		itoa(pressure, output, 10);
-//		UART_push_out_len(output, 5);
-//		UART_push_out("\r\n");
-
-		pressure = Get_ADC_Channel(ADC_Pressure_Sensor);
-		pressure = pressure * (float)3300/4095;
-		//For debugging only
-		itoa(pressure, output, 10);
-		UART_push_out_len(output, 5);
-		UART_push_out("\r\n");
-
-		vTaskDelay(500);
-	}
-
 	inputBuffer.size = 0;
 
 	//Stores the current command
@@ -61,8 +41,8 @@ extern void FSM(void *dummy){
 			UART_push_out("\r\n");
 		}
 
-		//Not working at the moment
-#warning "CRx command does not work yet. ADC value too high"
+		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
+		//This shouldn't be a problem with normal operation. Only with very low currents.
 		//CRx command
 		else if(strncmp(commandString, "CR", 2) == 0) {
 			uint16_t current = 0; //Current in mA
@@ -87,13 +67,7 @@ extern void FSM(void *dummy){
 
 			}
 
-//			UART_push_out_len((char *)&current, 2);
-//			UART_push_out("\r\n");
-
-			//For debugging only
-			char output[6];
-			itoa(current, output, 10);
-			UART_push_out_len(output, 5);
+			UART_push_out_len((char *)&current, 2);
 			UART_push_out("\r\n");
 
 		}
@@ -142,6 +116,7 @@ extern void FSM(void *dummy){
 
 		}
 
+		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
 		//WTH
 		else if(strcmp(commandString, "WTH") == 0){
 			char bufs[5];
@@ -151,6 +126,7 @@ extern void FSM(void *dummy){
 			UART_push_out_len("\r\n", 2);
 		}
 
+		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
 		//WTR
 		else if(strcmp(commandString, "WTR") == 0){
 			uint16_t pressure = Get_Water_Sensor_Value();
@@ -163,6 +139,7 @@ extern void FSM(void *dummy){
 
 		}
 
+		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
 		//PEX command
 		else if (strcmp(commandString, "PEX") == 0) {
 			uint16_t pressure = Get_External_Pressure();
