@@ -31,7 +31,8 @@ extern void FSM(void *dummy){
 			//sleeps the task into it is notified to continue
 			ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 		}
-		//Write a statement here to do a string comparison on commands
+
+		memset(commandString, 0, MAX_BUFFER_SIZE);
 		Buffer_pop(&inputBuffer, commandString);
 
 		//RID
@@ -94,32 +95,45 @@ extern void FSM(void *dummy){
 			} else if (commandString[2] == '0') {
 				//disable battery bridge
 			}
+
+			//Returns ACK for now so software can begin testing
+			UART_push_out("ACK\r\n");
 		}
 
-		//RBxyyy command
+		//RBxyyy command, Reboot Subsystem
 		else if (strncmp(commandString, "RB", 2) == 0) {
 
+			//Returns ACK for now so software can begin testing
+			UART_push_out("ACK\r\n");
 		}
 
-		//PxEx command
+		//PxEx command, Power Motor/System Enable/Disable
 		else if (commandString[0] == 'P' && commandString[2] == 'E') {
 
+			//Returns ACK for now so software can begin testing
+			UART_push_out("ACK\r\n");
 		}
 
-		//TMP
+		//TMP command, Temperature
 		else if (strcmp(commandString, "TMP") == 0) {
+			uint16_t temperature = Get_Temperature();
 
+			UART_push_out_len((char *)&temperature, 2);
+			UART_push_out("\r\n");
 		}
 
-		//HUM command
+		//HUM command, Humidity
 		else if (strcmp(commandString, "HUM") == 0) {
+			uint16_t humidity = Get_Temperature();
 
+			UART_push_out_len((char *)&humidity, 2);
+			UART_push_out("\r\n");
 		}
 
 		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
 		//WTH
 		else if(strcmp(commandString, "WTH") == 0){
-			char bufs[5];
+			char bufs[6] = "";
 			uint16_t pressure = Get_Water_Sensor_Value();
 			itoa(pressure, bufs, 10);
 			UART_push_out_len(bufs, 5);
@@ -130,13 +144,17 @@ extern void FSM(void *dummy){
 		//WTR
 		else if(strcmp(commandString, "WTR") == 0){
 			uint16_t pressure = Get_Water_Sensor_Value();
+
 			UART_push_out_len((char *)&pressure, 2);
 			UART_push_out_len("\r\n", 2);
 		}
 
 		//PIN command
 		else if (strcmp(commandString, "PIN") == 0) {
+			uint16_t pressure = Get_Temperature();
 
+			UART_push_out_len((char *)&pressure, 2);
+			UART_push_out("\r\n");
 		}
 
 		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
