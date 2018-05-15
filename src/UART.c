@@ -14,7 +14,7 @@
 
 //Definitions
 #define MIN_COMMAND_LENGTH (4)
-#define MAX_COMMAND_LENGTH (5)
+#define MAX_COMMAND_LENGTH (6)
 
 #define MAX_OUPUT_DATA (10)
 
