@@ -8,21 +8,21 @@
 #ifndef HIGH_SIDE_DRIVES_H_
 #define HIGH_SIDE_DRIVES_H_
 
-#define SYSTEM_POWER_GPIOA		(0x0800)
-#define MOTOR_POWER_GPIOA		(0x1000)
-
-typedef enum HSD{
+typedef enum board_section{
 	system_power,
 	motor_power,
-	parallel_batteries
-}HSD;
+	_12V_9V_power,
+	_5V_power
+}board_section_t;
 
 typedef enum state{
 	off = 0,
 	on
-}State;
+}state_t;
 
-extern void hsd_state(HSD drive, State state);
+extern void power_enable(board_section_t drive, state_t state);
+
+extern void parallel_battries_enable(state_t state);
 
 extern void init_HSDs();
 

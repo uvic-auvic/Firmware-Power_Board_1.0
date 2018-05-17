@@ -53,12 +53,14 @@ void vGeneralTaskInit(void){
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
 }
+
 int main(int argc, char* argv[]) {
+
 	//GPIO + ADC1 + DMA
 	initADC();
 	FSM_Init();
 	init_HSDs();
-	hsd_state(motor_power, on);
+	power_enable(motor_power, on);
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
