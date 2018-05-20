@@ -21,6 +21,10 @@
 // psi = (2500/1241)*ADC_VALUE + 220  for 5V supply to sensor
 #define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^(-2) psi, hecto-psi
 
+extern void init_Sensors() {
+
+}
+
 // Returns value in mV
 extern uint16_t Get_Battery_Voltage(battery_t battery) {
 	//It would be nice to have decimal places
