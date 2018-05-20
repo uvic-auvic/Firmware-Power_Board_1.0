@@ -24,6 +24,9 @@
 #include "FSM.h"
 #include "ADC.h"
 #include "high_side_drives.h"
+#include "I2C.h"
+
+//#include "I2C_Test.h" //For Debugging only
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -41,6 +44,7 @@ void blinkyTask(void *dummy){
 	GPIOC->ODR &= ~(0x100);
 	while(1){
 		GPIOC->ODR ^= 0x200;
+
 		vTaskDelay(500);
 	}
 }
@@ -52,13 +56,15 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
+
 }
+
 int main(int argc, char* argv[]) {
 	//GPIO + ADC1 + DMA
 	initADC();
-	FSM_Init();
+	I2C_init();
 	init_HSDs();
-	hsd_state(motor_power, on);
+	FSM_Init();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
