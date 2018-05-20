@@ -37,9 +37,9 @@ extern uint16_t Get_Battery_Voltage(battery_t battery) {
 }
 
 //Returns value in mA
-extern uint16_t Get_Battery_Current(battery_t battery) {
+extern uint32_t Get_Battery_Current(battery_t battery) {
 	//It would be nice to have decimal places
-	uint16_t current = 0;
+	uint32_t current = 0;
 
 	if(battery == Left_Battery) {
 		current = Get_ADC_Channel(ADC_Left_Bat_Current);
@@ -52,7 +52,7 @@ extern uint16_t Get_Battery_Current(battery_t battery) {
 }
 
 //Returns value in mA
-extern uint16_t Get_System_Current() {
+extern uint32_t Get_System_Current() {
 	//This uses an I2C device
 	//Returns constant for now so software can start testing
 
@@ -60,7 +60,7 @@ extern uint16_t Get_System_Current() {
 }
 
 //Returns value in mA
-extern uint16_t Get_Motors_Current() {
+extern uint32_t Get_Motors_Current() {
 	//This uses an I2C device
 	//Returns constant for now so software can start testing
 
