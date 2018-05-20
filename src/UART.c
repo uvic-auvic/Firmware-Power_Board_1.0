@@ -118,7 +118,7 @@ static void new_char_recv(char chartoreceive){
 			//Send_to_Odroid("tiny\r\n");
 		}else{
 			// Step 1 add to the input buffer
-			Buffer_add(&inputBuffer, chars_recv, strlen(chars_recv));
+			Buffer_add(&UARTinputBuffer, chars_recv, strlen(chars_recv));
 
 			// Step 2 is notify the FSM task that the buffer is no longer empty
 			/* At this point xTaskToNotify should not be NULL as a transmission was
