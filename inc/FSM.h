@@ -5,7 +5,7 @@
 #include "stm32f0xx.h"
 #include "Buffer.h"
 
-Buffer_t inputBuffer;
+Buffer_t UARTinputBuffer;
 
 /* Public function prototypes -----------------------------------------------*/
 

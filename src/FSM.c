@@ -19,7 +19,7 @@ extern void FSM(void *dummy){
 	//initialize the UART
 	UART_init();
 
-	inputBuffer.size = 0;
+	UARTinputBuffer.size = 0;
 
 	//Stores the current command
 	char commandString[MAX_BUFFER_SIZE] = "";
@@ -27,13 +27,13 @@ extern void FSM(void *dummy){
 	while(1){
 		//it's important that this is while, if the task is accidentally awaken it
 		//can't execute without having at least one item the input puffer
-		while(inputBuffer.size == 0){
+		while(UARTinputBuffer.size == 0){
 			//sleeps the task into it is notified to continue
 			ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 		}
 
 		memset(commandString, 0, MAX_BUFFER_SIZE);
-		Buffer_pop(&inputBuffer, commandString);
+		Buffer_pop(&UARTinputBuffer, commandString);
 
 		//RID
 		if(strcmp(commandString, "RID") == 0){
@@ -176,7 +176,7 @@ extern void FSM(void *dummy){
 }
 
 void FSM_Init(){
-	Buffer_init(&inputBuffer);
+	Buffer_init(&UARTinputBuffer);
 
 	// Create the FSM task
     xTaskCreate(FSM,

@@ -25,6 +25,7 @@
 #include "FSM.h"
 #include "ADC.h"
 #include "high_side_drives.h"
+#include "I2C.h"
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -53,14 +54,16 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
+
 }
+
 int main(int argc, char* argv[]) {
 	//LED + GPIO + ADC1 + DMA
 	init_LED();
 	initADC();
-	FSM_Init();
+	I2C_init();
 	init_HSDs();
-	hsd_state(motor_power, on);
+	FSM_Init();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
