@@ -21,12 +21,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "LED.h"
 #include "FSM.h"
 #include "ADC.h"
 #include "high_side_drives.h"
 #include "I2C.h"
-
-//#include "I2C_Test.h" //For Debugging only
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
@@ -37,15 +36,14 @@
 
 
 void blinkyTask(void *dummy){
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
-	GPIOC->MODER |= 0x50000;
-	GPIOC->ODR |= 0x100;
-	vTaskDelay(2000);
-	GPIOC->ODR &= ~(0x100);
-	while(1){
-		GPIOC->ODR ^= 0x200;
+	GPIOC->ODR |= GPIO_Pin_8; // To turn on the blue LED
+	vTaskDelay(2000);         // To delay the code by 2s
+	GPIOC->ODR &= ~(GPIO_Pin_8);   // TO turn off the blue LED
+	GPIOC->ODR |= GPIO_Pin_9;	// To turn on the green LED
 
-		vTaskDelay(500);
+	while(1){                   // while loop for blinking
+			GPIOC->ODR ^= GPIO_Pin_9;
+			vTaskDelay(500);     // speed of the delay
 	}
 }
 
@@ -60,7 +58,8 @@ void vGeneralTaskInit(void){
 }
 
 int main(int argc, char* argv[]) {
-	//GPIO + ADC1 + DMA
+	//LED + GPIO + ADC1 + DMA
+	init_LED();
 	initADC();
 	I2C_init();
 	init_HSDs();
