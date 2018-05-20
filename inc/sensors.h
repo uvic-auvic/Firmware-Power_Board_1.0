@@ -13,6 +13,7 @@ typedef enum battery {
 	Right_Battery
 } battery_t;
 
+extern void init_Sensors();
 
 extern uint16_t Get_Battery_Voltage(battery_t battery);
 
