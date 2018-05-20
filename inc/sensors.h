@@ -16,11 +16,11 @@ typedef enum battery {
 
 extern uint16_t Get_Battery_Voltage(battery_t battery);
 
-extern uint16_t Get_Battery_Current(battery_t battery);
+extern uint32_t Get_Battery_Current(battery_t battery);
 
-extern uint16_t Get_System_Current();
+extern uint32_t Get_System_Current();
 
-extern uint16_t Get_Motors_Current();
+extern uint32_t Get_Motors_Current();
 
 extern uint16_t Get_External_Pressure();
 
