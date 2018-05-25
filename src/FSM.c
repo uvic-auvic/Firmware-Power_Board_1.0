@@ -19,7 +19,7 @@ extern void FSM(void *dummy){
 	//initialize the UART
 	UART_init();
 
-	inputBuffer.size = 0;
+	UARTinputBuffer.size = 0;
 
 	//Stores the current command
 	char commandString[MAX_BUFFER_SIZE] = "";
@@ -27,13 +27,13 @@ extern void FSM(void *dummy){
 	while(1){
 		//it's important that this is while, if the task is accidentally awaken it
 		//can't execute without having at least one item the input puffer
-		while(inputBuffer.size == 0){
+		while(UARTinputBuffer.size == 0){
 			//sleeps the task into it is notified to continue
 			ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 		}
 
 		memset(commandString, 0, MAX_BUFFER_SIZE);
-		Buffer_pop(&inputBuffer, commandString);
+		Buffer_pop(&UARTinputBuffer, commandString);
 
 		//RID
 		if(strcmp(commandString, "RID") == 0){
@@ -44,50 +44,66 @@ extern void FSM(void *dummy){
 
 		//Hardware issue with op-amp causes values below 45mV and values above 2.75V to return incorrect ADC values.
 		//This shouldn't be a problem with normal operation. Only with very low currents.
-		//CRx command
+		//CRx & CRA command
 		else if(strncmp(commandString, "CR", 2) == 0) {
-			uint16_t current = 0; //Current in mA
+			uint32_t current = 0; //Current in mA
 
 			if(commandString[2] == '1') {
 				//Battery 1
 				current = Get_Battery_Current(Left_Battery);
+				UART_push_out_len((char *)&current, 3);
 
 			} else if(commandString[2] == '2') {
 				//Battery 2
 				current = Get_Battery_Current(Right_Battery);
+				UART_push_out_len((char *)&current, 3);
 
 			} else if(commandString[2] == 'M') {
 				//Total Motor Current
 				//Uses I2C chip, Not implemented yet
 				current = Get_Motors_Current();
+				UART_push_out_len((char *)&current, 3);
 
 			} else if(commandString[2] == 'S') {
 				//Total System current
 				//Uses I2C chip, Not implemented yet
 				current = Get_System_Current();
+				UART_push_out_len((char *)&current, 3);
 
+			} else if(commandString[2] == 'A') {
+				uint32_t cr1 = Get_Battery_Current(Left_Battery);
+				uint32_t cr2 = Get_Battery_Current(Right_Battery);
+				uint32_t crm = Get_Motors_Current();
+				uint32_t crs = Get_System_Current();
+				UART_push_out_len((char *)&cr1,3);
+				UART_push_out_len((char *)&cr2,3);
+				UART_push_out_len((char *)&crm,3);
+				UART_push_out_len((char *)&crs,3);
 			}
 
-			UART_push_out_len((char *)&current, 2);
 			UART_push_out("\r\n");
 
 		}
 
-		//VTx command
+		//VTx & VTA command
 		else if (strncmp(commandString, "VT", 2) == 0) {
 				uint16_t voltage = 0; //Voltage in mV
 
 				if (commandString[2] == '1') {
 					voltage = Get_Battery_Voltage(Left_Battery);
+					UART_push_out_len((char *)&voltage, 2);
 				} else if (commandString[2] == '2') {
 					voltage = Get_Battery_Voltage(Right_Battery);
+					UART_push_out_len((char *)&voltage, 2);
+				} else if (commandString[2] == 'A') {
+					uint16_t vt1 = Get_Battery_Voltage(Left_Battery);
+					uint16_t vt2 = Get_Battery_Voltage(Right_Battery);
+					UART_push_out_len((char *)&vt1,2);
+					UART_push_out_len((char *)&vt2,2);
 				}
 
-				UART_push_out_len((char *)&voltage, 2);
 				UART_push_out("\r\n");
-
 		}
-
 		//BPx command
 		else if (strncmp(commandString, "BP", 2) == 0) {
 			if (commandString[2] == '1') {
@@ -176,7 +192,7 @@ extern void FSM(void *dummy){
 }
 
 void FSM_Init(){
-	Buffer_init(&inputBuffer);
+	Buffer_init(&UARTinputBuffer);
 
 	// Create the FSM task
     xTaskCreate(FSM,
