@@ -46,6 +46,7 @@ extern void parallel_battries_enable(state_t state) {
 
 extern void init_HSDs(){
 
+	// GPIO Initialization
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOC, ENABLE);
 
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -58,4 +59,8 @@ extern void init_HSDs(){
 
 	GPIO_InitStruct.GPIO_Pin = (_12V_9V_GPIO | _5V_GPIO);
 	GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	//Default start-up state
+	power_enable(motor_power, on);
+	power_enable(system_power, on);
 }

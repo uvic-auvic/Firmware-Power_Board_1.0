@@ -65,8 +65,7 @@ int main(int argc, char* argv[]) {
 	I2C_init();
 	init_Sensors();
 	init_HSDs();
-  FSM_Init();
-  power_enable(motor_power, on);
+	FSM_Init();
 
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
