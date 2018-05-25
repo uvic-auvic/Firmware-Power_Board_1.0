@@ -58,6 +58,7 @@ void vGeneralTaskInit(void){
 }
 
 int main(int argc, char* argv[]) {
+
 	//LED + GPIO + ADC1 + DMA
 	init_LED();
 	initADC();
