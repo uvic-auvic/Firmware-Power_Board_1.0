@@ -13,6 +13,7 @@
 #include "ADC.h"
 #include "Si7021_temp_humidity_sensor.h"
 #include "Internal_Pressure_Sensor.h"
+#include "INA226_Current_Sensor.h"
 
 //ADC is 12-bit right aligned
 //Defines for calculations
@@ -38,9 +39,13 @@ uint32_t internalPressure = 0;
 static void update_I2C_sensors() {
 
 	//Temp and humidity and internal pressure sensors init will go here if needed
+	init_INA226_Current_Sensor();
 	init_internal_presure_sensor();
 
 	while(1) {
+
+		systemCurrent = update_system_current();
+		motorCurrent = update_motor_current();
 
 		//Temperature and humidity sensor update functions
 		temperature = Update_Temperature();
@@ -50,6 +55,7 @@ static void update_I2C_sensors() {
 		internalPressure = Update_Internal_Pressure();
 
 		vTaskDelay(I2C_SENSORS_UPDATE_FREQ);
+
 	}
 }
 
