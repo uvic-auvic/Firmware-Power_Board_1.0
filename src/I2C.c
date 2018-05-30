@@ -9,6 +9,7 @@
 #include "stm32f0xx.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 
 #define I2C_NBYTES_BIT	16
 #define I2C_SADD_BIT	1
@@ -24,6 +25,9 @@ uint8_t *I2C_inputBuffer;
 
 //FreeRTOS current task handle
 TaskHandle_t TaskToNotify = NULL;
+
+//FreeRTOR mutex
+SemaphoreHandle_t I2C_mutex;
 
 extern void I2C_init() {
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
@@ -69,6 +73,9 @@ extern void I2C_init() {
 	/* (5) Enable I2C2_IRQn */
 	NVIC_SetPriority(I2C1_IRQn, 6); /* (4) */
 	NVIC_EnableIRQ(I2C1_IRQn); /* (5) */
+
+	//Initialize I2C mutex
+	I2C_mutex = xSemaphoreCreateMutex();
 }
 
 extern void I2C_read(uint8_t address, uint8_t numBytes, uint8_t *message) {
@@ -108,5 +115,8 @@ void I2C1_IRQHandler(void) {
 
 		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 
+	} else if ((I2C1->ISR & I2C_ISR_NACKF) == I2C_ISR_NACKF) { //If a NACK is returned
+
+		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 	}
 }

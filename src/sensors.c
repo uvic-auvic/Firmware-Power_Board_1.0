@@ -33,7 +33,11 @@ uint16_t humidity = 0;
 
 uint16_t internalPressure = 0;
 
+
 void update_I2C_sensors() {
+
+	//Temp and humidity and internal pressure sensors init will go here if needed
+	init_INA226_Current_Sensor();
 
 	while(1) {
 
@@ -49,9 +53,6 @@ void update_I2C_sensors() {
 }
 
 extern void init_Sensors() {
-
-	//Temp and humidity and internal pressure sensors init will go here if needed
-	init_INA226_Current_Sensor();
 
 	xTaskCreate(update_I2C_sensors,
 		(const char *)"update_I2C_sensors",
