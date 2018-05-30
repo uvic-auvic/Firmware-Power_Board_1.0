@@ -29,6 +29,7 @@ TaskHandle_t TaskToNotify = NULL;
 //FreeRTOR mutex
 SemaphoreHandle_t I2C_mutex;
 
+
 extern uint16_t switch_endiness_uint16(uint16_t input) {
 	uint8_t temp = (input & 0xFF00) >> 8;
 	input = (input & 0x00FF) << 8;
@@ -136,8 +137,8 @@ void I2C1_IRQHandler(void) {
 		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 
 	} else if ((I2C1->ISR & I2C_ISR_NACKF) == I2C_ISR_NACKF) { //If a NACK is returned
-		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 
+		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 	}
 
 }

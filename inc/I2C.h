@@ -23,6 +23,6 @@ extern void I2C_read(uint8_t address, uint8_t numBytes, uint8_t *message);
 
 extern void I2C_write(uint8_t address, uint8_t numBytes, uint8_t message[]);
 
-
+extern void I2C_write(uint8_t address, uint8_t numBytes, uint8_t message[]);
 
 #endif /* I2C_H_ */
