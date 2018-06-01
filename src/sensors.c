@@ -15,24 +15,21 @@
 //ADC is 12-bit right aligned
 //Defines for calculations
 #define ADC_TO_PIN_VOLTAGE (3.3/4095)
-
 #define ADC_VALUE_TO_BAT_VOLTAGE	(10090 * ADC_TO_PIN_VOLTAGE) //mV
-
 #define ADC_VALUE_TO_CURRENT	((float)121000/4095) //121000mA of current when pin is at 3.3V
 
 // psi = (2500/819)*ADC_VALUE + 220  for 3.3V supply to sensor
 // psi = (2500/1241)*ADC_VALUE + 220  for 5V supply to sensor
 #define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^(-2) psi, hecto-psi
 
+#define I2C_SENSORS_UPDATE_FREQ	(1000) //units: number of ticks
+
 //Global variables for I2C sensors values
 uint32_t systemCurrent = 0;
 uint32_t motorCurrent = 0;
-
 uint16_t temperature = 0;
 uint16_t humidity = 0;
-
 uint16_t internalPressure = 0;
-
 
 void update_I2C_sensors() {
 
@@ -46,9 +43,9 @@ void update_I2C_sensors() {
 
 		//Temperature and humidity sensor update function will go here
 
-		//Internal perssure update function will go here
+		//Internal pressure update function will go here
 
-		vTaskDelay(1000);
+		vTaskDelay(I2C_SENSORS_UPDATE_FREQ);
 	}
 }
 
@@ -60,7 +57,6 @@ extern void init_Sensors() {
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
-
 
 }
 
@@ -97,17 +93,15 @@ extern uint32_t Get_Battery_Current(battery_t battery) {
 //Returns value in mA
 extern uint32_t Get_System_Current() {
 	//This uses an I2C device
-	//Returns constant for now so software can start testing
 
-	return 0x00FF;
+	return systemCurrent;
 }
 
 //Returns value in mA
-extern uint32_t Get_Motors_Current() {
+extern uint32_t Get_Motor_Current() {
 	//This uses an I2C device
-	//Returns constant for now so software can start testing
 
-	return 0x00FF;
+	return motorCurrent;
 }
 
 extern uint16_t Get_External_Pressure() {
