@@ -62,20 +62,18 @@ extern void FSM(void *dummy){
 
 			} else if(commandString[2] == 'M') {
 				//Total Motor Current
-				//Uses I2C chip, Not implemented yet
-				current = Get_Motors_Current();
+				current = Get_Motor_Current();
 				UART_push_out_len((char *)&current, 3);
 
 			} else if(commandString[2] == 'S') {
 				//Total System current
-				//Uses I2C chip, Not implemented yet
 				current = Get_System_Current();
 				UART_push_out_len((char *)&current, 3);
 
 			} else if(commandString[2] == 'A') {
 				uint32_t cr1 = Get_Battery_Current(Left_Battery);
 				uint32_t cr2 = Get_Battery_Current(Right_Battery);
-				uint32_t crm = Get_Motors_Current();
+				uint32_t crm = Get_Motor_Current();
 				uint32_t crs = Get_System_Current();
 				UART_push_out_len((char *)&cr1,3);
 				UART_push_out_len((char *)&cr2,3);

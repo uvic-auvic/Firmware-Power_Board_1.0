@@ -18,9 +18,7 @@
 //ADC is 12-bit right aligned
 //Defines for calculations
 #define ADC_TO_PIN_VOLTAGE (3.3/4095)
-
 #define ADC_VALUE_TO_BAT_VOLTAGE	(10090 * ADC_TO_PIN_VOLTAGE) //mV
-
 #define ADC_VALUE_TO_CURRENT	((float)121000/4095) //121000mA of current when pin is at 3.3V
 
 // psi = (2500/819)*ADC_VALUE + 220  for 3.3V supply to sensor
@@ -36,7 +34,7 @@ uint16_t temperature = 0;
 uint16_t humidity = 0;
 uint32_t internalPressure = 0;
 
-static void update_I2C_sensors() {
+void update_I2C_sensors() {
 
 	//Temp and humidity and internal pressure sensors init will go here if needed
 	init_INA226_Current_Sensor();
@@ -103,17 +101,15 @@ extern uint32_t Get_Battery_Current(battery_t battery) {
 //Returns value in mA
 extern uint32_t Get_System_Current() {
 	//This uses an I2C device
-	//Returns constant for now so software can start testing
 
-	return 0x00FF;
+	return systemCurrent;
 }
 
 //Returns value in mA
-extern uint32_t Get_Motors_Current() {
+extern uint32_t Get_Motor_Current() {
 	//This uses an I2C device
-	//Returns constant for now so software can start testing
 
-	return 0x00FF;
+	return motorCurrent;
 }
 
 extern uint16_t Get_External_Pressure() {
