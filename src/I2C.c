@@ -90,7 +90,7 @@ extern void I2C_read(uint8_t address, uint8_t numBytes, uint8_t *message) {
 extern void I2C_write(uint8_t address, uint8_t numBytes, uint8_t message[]) {
 	TaskToNotify = xTaskGetCurrentTaskHandle();
 
-	memcpy(&I2C_OutputBuffer, &message, numBytes);
+	memcpy(I2C_OutputBuffer, message, numBytes);
 
 	I2C1->CR2 = (numBytes << I2C_NBYTES_BIT) | (address << I2C_SADD_BIT);
 	I2C1->CR2 &= ~I2C_CR2_RD_WRN;
