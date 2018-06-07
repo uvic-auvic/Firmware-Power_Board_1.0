@@ -5,7 +5,7 @@
 #include "semphr.h"
 
 //Time out
-#define I2C_TIMEOUT          2000
+#define I2C_TIMEOUT                  2000
 
 //Si7021 register commands
 #define CMD_MEASURE_RH_HM            0xE5
@@ -17,52 +17,55 @@
 
 
 //Si7021 I2C slave addresses
-#define AD_READ         0b1000000
-#define AD_WRITE        0b1000000
+#define Si_Address                   0b1000000
 
 
 //Take the relative humidity and return it as a percentage
 extern uint16_t Update_Humidity() {
+	if (xSemaphoreTake(I2C_mutex, I2C_TIMEOUT)== pdTRUE) {
 
-	uint8_t humidityAddress = CMD_MEASURE_RH_HM;
+		uint8_t humidityAddress = CMD_MEASURE_RH_HM;
 
-	xSemaphoreTake(I2C_mutex, I2C_TIMEOUT);
+		I2C_write(Si_Address , 1, &humidityAddress);
+		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
-	I2C_write(AD_WRITE, 1, &humidityAddress);
-	ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		uint16_t relativeHumidity = 0;
 
-	uint16_t relativeHumidity = 0;
+		I2C_read(Si_Address, 2, (uint8_t *)&relativeHumidity);
+		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
-	I2C_read(AD_READ, 2, &relativeHumidity);
-	ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		xSemaphoreGive(I2C_mutex);
 
-	xSemaphoreGive(I2C_mutex);
+		relativeHumidity = switch_endiness_uint16(relativeHumidity);
+		relativeHumidity = ((125*relativeHumidity)/65536)-6;
 
-	relativeHumidity = switch_endiness_uint16(relativeHumidity);
-	relativeHumidity = ((125*relativeHumidity)/65536)-6;
-
-	return relativeHumidity; //returns relative humiditiy %
-
+		return relativeHumidity; //returns relative humidity %
+	} else {
+		return 0xFFFF;
+	  }
 }
-
+// take the temperature in Kelvins and return it as 10*(actual temperature)
 extern uint16_t Update_Temperature() {
 
-	uint8_t tempAddress = CMD_MEASURE_TEMP_HM;
+	if (xSemaphoreTake(I2C_mutex, I2C_TIMEOUT)== pdTRUE) {
 
-	xSemaphoreTake(I2C_mutex, I2C_TIMEOUT);
-	I2C_write(AD_WRITE, 1, &tempAddress);
+		uint8_t tempAddress = CMD_MEASURE_TEMP_HM;
 
-	ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
-	uint16_t temperature = 0;
+		I2C_write(Si_Address, 1, &tempAddress);
+		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
-	I2C_read(AD_READ, 2, &temperature);
-	ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		uint16_t temperature = 0;
 
-	xSemaphoreGive(I2C_mutex);
+		I2C_read(Si_Address, 2, (uint8_t *)&temperature);
+		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
-	temperature = switch_endiness_uint16(temperature);
-	temperature = ((1757.2*temperature)/65536)+2263;
+		xSemaphoreGive(I2C_mutex);
 
-	return temperature; //returns 10*temperature in Kelvins
+		temperature = switch_endiness_uint16(temperature);
+		temperature = ((1757.2*temperature)/65536)+2263;
 
+		return temperature; //returns 10*temperature in Kelvins
+	} else {
+		return 0xFFFF;
+	  }
 }
