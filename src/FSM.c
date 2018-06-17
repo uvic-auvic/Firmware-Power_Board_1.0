@@ -10,8 +10,10 @@
 #include "task.h"
 #include "ADC.h"
 #include "sensors.h"
+#include "high_side_drives.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define CHAR_TO_INT (48)
 
@@ -126,8 +128,31 @@ extern void FSM(void *dummy){
 		//PxEx command, Power Motor/System Enable/Disable
 		else if (commandString[0] == 'P' && commandString[2] == 'E') {
 
-			//Returns ACK for now so software can begin testing
-			UART_push_out("ACK\r\n");
+			board_section_t board_section;
+			bool error = false;
+
+			if(commandString[1] == 'M') {
+				board_section = motor_power;
+			} else if (commandString[1] == 'S') {
+				board_section = system_power;
+			} else if (commandString[1] == '5') {
+				board_section = _5V_power;
+			} else if (commandString[1] == '9' || commandString[1] == 'T') {
+				board_section = _12V_9V_power;
+			} else {
+				error = true;
+			}
+
+			if(commandString[3] == '0' && error == false) {
+				power_enable(board_section, off);
+				UART_push_out("ACK\r\n");
+			} else if (commandString[3] == '1' && error == false) {
+				power_enable(board_section, on);
+				UART_push_out("ACK\r\n");
+			} else {
+				UART_push_out("ERR\r\n");
+			}
+
 		}
 
 		//TMP command, Temperature
