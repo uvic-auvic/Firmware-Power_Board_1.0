@@ -6,6 +6,9 @@
  */
 
 #include "stm32f0xx.h"
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
+#include "task.h"
 #include "sensors.h"
 #include "ADC.h"
 
@@ -21,7 +24,40 @@
 // psi = (2500/1241)*ADC_VALUE + 220  for 5V supply to sensor
 #define ADC_VALUE_TO_PRESSURE(x)	(((float)2500/1241)*(x) + 220) //10^(-2) psi, hecto-psi
 
+#define I2C_SENSORS_UPDATE_FREQ	(1000) //units: number of ticks
+
+//Global variables for I2C sensors values
+uint32_t systemCurrent = 0;
+uint32_t motorCurrent = 0;
+uint16_t temperature = 0;
+uint16_t humidity = 0;
+uint16_t internalPressure = 0;
+
+void update_I2C_sensors() {
+
+	//Temp and humidity and internal pressure sensors init will go here if needed
+
+	while(1) {
+
+
+
+		//Temperature and humidity sensor update function will go here
+		temperature = Update_Temperature();
+		humidity = Update_Humidity();
+		//Internal pressure update function will go here
+
+		vTaskDelay(I2C_SENSORS_UPDATE_FREQ);
+	}
+}
+
 extern void init_Sensors() {
+
+	xTaskCreate(update_I2C_sensors,
+		(const char *)"update_I2C_sensors",
+		configMINIMAL_STACK_SIZE,
+		NULL,                 // pvParameters
+		tskIDLE_PRIORITY + 1, // uxPriority
+		NULL              ); // pvCreatedTask */
 
 }
 
