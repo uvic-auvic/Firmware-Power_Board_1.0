@@ -157,7 +157,6 @@ extern void FSM(void *dummy){
 
 		//TMP command, Temperature
 		else if (strcmp(commandString, "TMP") == 0) {
-			uint16_t temperature = Get_Temperature();
 
 			UART_push_out_len((char *)&temperature, 2);
 			UART_push_out("\r\n");
@@ -165,7 +164,6 @@ extern void FSM(void *dummy){
 
 		//HUM command, Humidity
 		else if (strcmp(commandString, "HUM") == 0) {
-			uint16_t humidity = Get_Temperature();
 
 			UART_push_out_len((char *)&humidity, 2);
 			UART_push_out("\r\n");
