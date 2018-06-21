@@ -36,6 +36,19 @@ extern uint16_t switch_endiness_uint16(uint16_t input) {
 	return input;
 }
 
+extern uint32_t switch_endiness_uint32(uint32_t input, uint8_t numBytes) {
+
+	uint32_t output = 0;
+
+	for(uint8_t i = 0; i < numBytes; i++) {
+		output = output << 8;
+		output |= (input & 0xFF);
+		input = input >> 8;
+	}
+
+	return output;
+}
+
 extern void I2C_init() {
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 

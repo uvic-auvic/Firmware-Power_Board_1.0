@@ -4,11 +4,11 @@
 //
 
 // ----------------------------------------------------------------------------
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-type"
 
 #include <stdio.h>
 #include <stdlib.h>
-//#include "diag/Trace.h"
-
 #include "stm32f0xx_misc.h"
 #include "stm32f0xx_tim.h"
 #include <stm32f0xx_rcc.h>
@@ -16,10 +16,11 @@
 #include "stm32f0xx_syscfg.h"
 #include "stm32f0xx.h"
 #include "stm32f0xx_adc.h"
-
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
+
+#pragma GCC diagnostic pop
 
 #include "LED.h"
 #include "FSM.h"
@@ -27,13 +28,6 @@
 #include "high_side_drives.h"
 #include "I2C.h"
 #include "sensors.h"
-
-// Sample pragmas to cope with warnings. Please note the related line at
-// the end of this function, used to pop the compiler diagnostics status.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wmissing-declarations"
-#pragma GCC diagnostic ignored "-Wreturn-type"
 
 void blinkyTask(void *dummy){
 	GPIOC->ODR |= GPIO_Pin_8; // To turn on the blue LED
@@ -49,7 +43,7 @@ void blinkyTask(void *dummy){
 
 void vGeneralTaskInit(void){
    xTaskCreate(blinkyTask,
-		(const signed char *)"blinkyTask",
+		(const char *)"blinkyTask",
 		configMINIMAL_STACK_SIZE,
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
@@ -75,6 +69,5 @@ int main(int argc, char* argv[]) {
 	while (1);
 }
 
-#pragma GCC diagnostic pop
 
 // ----------------------------------------------------------------------------

@@ -190,9 +190,8 @@ extern void FSM(void *dummy){
 
 		//PIN command
 		else if (strcmp(commandString, "PIN") == 0) {
-			uint16_t pressure = Get_Temperature();
 
-			UART_push_out_len((char *)&pressure, 2);
+			UART_push_out_len((char *)&internalPressure, 3);
 			UART_push_out("\r\n");
 		}
 
