@@ -39,13 +39,6 @@
 #define TO_SHUNT_VOLTAGE(x) ((x)*2.5)
 #define TO_POWER(x) ((x)*25)
 
-static uint16_t switch_endiness_uint16(uint16_t input) {
-	uint8_t temp = (input & 0xFF00) >> 8;
-	input = (input & 0x00FF) << 8;
-	input |= temp;
-	return input;
-}
-
 extern void init_INA226_Current_Sensor() {
 
 	uint8_t valueToWriteOnStartup[3] = {CALIB_REG_ADDRESS, CALIB_REG_VALUE_HIGH_BYTE, CALIB_REG_VALUE_LOW_BYTE};
@@ -73,7 +66,7 @@ extern uint32_t update_system_current() {
 
 		uint32_t current = 0;
 
-		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, &current);
+		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&current);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
@@ -97,7 +90,7 @@ extern uint32_t update_motor_current() {
 
 		uint32_t current = 0;
 
-		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, &current);
+		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&current);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
@@ -121,7 +114,7 @@ extern uint16_t get_system_bus_voltage() {
 
 		uint16_t voltage = 0;
 
-		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, &voltage);
+		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&voltage);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
@@ -131,7 +124,7 @@ extern uint16_t get_system_bus_voltage() {
 
 		return voltage;
 	} else {
-		return 0xFFFFFFFF;
+		return 0xFFFF;
 	}
 
 }
@@ -145,7 +138,7 @@ extern uint16_t get_motor_bus_voltage() {
 
 		uint16_t voltage = 0;
 
-		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, &voltage);
+		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&voltage);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
@@ -170,7 +163,7 @@ extern uint16_t get_system_shunt_voltage() {
 
 		uint16_t shuntVoltage = 0;
 
-		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, &shuntVoltage);
+		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&shuntVoltage);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
@@ -194,7 +187,7 @@ extern uint16_t get_motor_shunt_voltage() {
 
 		uint16_t shuntVoltage = 0;
 
-		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, &shuntVoltage);
+		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&shuntVoltage);
 		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
 
 		xSemaphoreGive(I2C_mutex);
