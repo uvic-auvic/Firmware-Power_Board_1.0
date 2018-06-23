@@ -7,10 +7,13 @@
 
 #include "stm32f0xx.h"
 #include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 #include "task.h"
 #include "sensors.h"
 #include "ADC.h"
 #include "INA226_Current_Sensor.h"
+#include "Si7021_temp_humidity_sensor.h"
+#include "Internal_Pressure_Sensor.h"
 
 //ADC is 12-bit right aligned
 //Defines for calculations
@@ -29,27 +32,39 @@ uint32_t systemCurrent = 0;
 uint32_t motorCurrent = 0;
 uint16_t temperature = 0;
 uint16_t humidity = 0;
-uint16_t internalPressure = 0;
+uint32_t internalPressure = 0;
 
-void update_I2C_sensors() {
+static void update_I2C_sensors() {
 
-	//Temp and humidity and internal pressure sensors init will go here if needed
 	init_INA226_Current_Sensor();
+	init_internal_presure_sensor();
+
 
 	while(1) {
 
 		systemCurrent = update_system_current();
 		motorCurrent = update_motor_current();
 
-		//Temperature and humidity sensor update function will go here
+		//Temperature and humidity sensor update functions
+		temperature = Update_Temperature();
+		humidity = Update_Humidity();
 
-		//Internal pressure update function will go here
+		//Internal pressure update function
+		internalPressure = Update_Internal_Pressure();
+
 
 		vTaskDelay(I2C_SENSORS_UPDATE_FREQ);
 	}
 }
 
 extern void init_Sensors() {
+
+	xTaskCreate(update_I2C_sensors,
+		(const char *)"update_I2C_sensors",
+		configMINIMAL_STACK_SIZE,
+		NULL,                 // pvParameters
+		tskIDLE_PRIORITY + 1, // uxPriority
+		NULL              ); // pvCreatedTask */
 
 	xTaskCreate(update_I2C_sensors,
 		(const char *)"update_I2C_sensors",

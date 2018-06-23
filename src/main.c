@@ -1,5 +1,11 @@
+//
+// This file is part of the GNU ARM Eclipse distribution.
+// Copyright (c) 2014 Liviu Ionescu.
+//
+
+// ----------------------------------------------------------------------------
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wreturn-type"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +52,7 @@ void vGeneralTaskInit(void){
 }
 
 int main(int argc, char* argv[]) {
+
 	//LED + GPIO + ADC1 + DMA
 	init_LED();
 	initADC();
@@ -54,9 +61,6 @@ int main(int argc, char* argv[]) {
 	init_HSDs();
 	FSM_Init();
 
-	hsd_state(system_power, on);
-	hsd_state(motor_power, on);
-
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
@@ -64,3 +68,6 @@ int main(int argc, char* argv[]) {
 	// Should never get here
 	while (1);
 }
+
+// ----------------------------------------------------------------------------
+
