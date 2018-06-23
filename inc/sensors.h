@@ -15,6 +15,7 @@ typedef enum battery {
 
 extern uint16_t temperature;
 extern uint16_t humidity;
+extern uint32_t internalPressure;
 
 extern void init_Sensors();
 
