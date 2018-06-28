@@ -63,4 +63,6 @@ extern void init_HSDs(){
 	//Default start-up state
 	power_enable(motor_power, on);
 	power_enable(system_power, on);
+	power_enable(_5V_power, on);
+	power_enable(_12V_9V_power, on);
 }
