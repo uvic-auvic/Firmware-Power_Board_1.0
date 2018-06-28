@@ -30,8 +30,8 @@
 #define CALIB_REG_VALUE_LOW_BYTE	0xAA //4mA per bit
 
 //Correction to take into account trace resistance
-#define SYSTEM_CURRENT_CALC_CORRECTION	1 //Needs to be calibrated
-#define MOTOR_CURRENT_CALC_CORRECTION	1 //Needs to be calibrated
+#define SYSTEM_CURRENT_CALC_CORRECTION	((float)0.290) //Needs to be calibrated
+#define MOTOR_CURRENT_CALC_CORRECTION	((float)0.714) //Needs to be calibrated
 
 //Formulas to convert bits to actual values with units
 #define TO_CURRENT(x) ((x)*(4))
