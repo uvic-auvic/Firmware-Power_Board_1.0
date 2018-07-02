@@ -26,4 +26,6 @@ extern void init_LED() {
 
 		GPIO_Init(GPIOC, &GPIO_InitStructure);
 
+		GPIOC->ODR |= GPIO_Pin_8;
+
 }

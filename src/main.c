@@ -1,4 +1,4 @@
-//
+	//
 // This file is part of the GNU ARM Eclipse distribution.
 // Copyright (c) 2014 Liviu Ionescu.
 //
@@ -28,12 +28,19 @@
 #include "high_side_drives.h"
 #include "I2C.h"
 #include "sensors.h"
+#include "Reed_Switch.h"
 
 void blinkyTask(void *dummy){
-	GPIOC->ODR |= GPIO_Pin_8; // To turn on the blue LED
-	vTaskDelay(2000);         // To delay the code by 2s
-	GPIOC->ODR &= ~(GPIO_Pin_8);   // TO turn off the blue LED
-	GPIOC->ODR |= GPIO_Pin_9;	// To turn on the green LED
+	GPIOC->ODR |= GPIO_Pin_8; // To turn on the green LED
+
+	uint8_t counter = 0;
+	while (counter < 20) {
+		GPIOC->ODR ^= GPIO_Pin_9;
+		vTaskDelay(500);     // speed of the delay
+		counter++;
+	}
+
+	GPIOC->ODR &= ~(GPIO_Pin_8);   // TO turn off the green LED
 
 	while(1){                   // while loop for blinking
 			GPIOC->ODR ^= GPIO_Pin_9;
@@ -54,7 +61,9 @@ void vGeneralTaskInit(void){
 int main(int argc, char* argv[]) {
 
 	//LED + GPIO + ADC1 + DMA
+	for(uint32_t i = 0; i < 2000000; i++);
 	init_LED();
+	init_Reed_Switch();
 	initADC();
 	I2C_init();
 	init_Sensors();
