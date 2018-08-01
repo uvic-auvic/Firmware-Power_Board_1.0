@@ -78,9 +78,9 @@ static void Configure_USART1(void)
   //RCC->CFGR3 |= RCC_CFGR3_USART1SW_1;
 
   /* Configure USART1 */
-  /* (1) oversampling by 16, 9600 baud */
+  /* (1) oversampling by 16, 115200 baud */
   /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity, reception mode */
-  USART1->BRR = 480000 / 96; /* (1) */
+  USART1->BRR = 480000 / 1152; /* (1) */
   USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE | USART_CR1_TE ; /* (2) */
 
   /* polling idle frame Transmission */
