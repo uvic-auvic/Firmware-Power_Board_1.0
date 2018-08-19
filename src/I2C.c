@@ -121,6 +121,8 @@ extern void I2C_write(uint8_t address, uint8_t numBytes, uint8_t message[]) {
 
 void I2C1_IRQHandler(void) {
 
+	GPIOC->ODR |= GPIO_Pin_8; //For debugging if interrupt is getting stuck
+
 	if((I2C1->ISR & I2C_ISR_RXNE) == I2C_ISR_RXNE) {
 		*I2C_inputBuffer = I2C1->RXDR;
 		I2C_inputBuffer++;
@@ -141,4 +143,5 @@ void I2C1_IRQHandler(void) {
 		vTaskNotifyGiveFromISR(TaskToNotify, pdFALSE);
 	}
 
+	GPIOC->ODR &= ~(GPIO_Pin_8); //For debugging if interrupt is getting stuck
 }

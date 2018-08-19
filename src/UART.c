@@ -158,6 +158,9 @@ static void new_char_recv(char chartoreceive){
   */
 void USART1_IRQHandler(void)
 {
+
+  GPIOC->ODR |= GPIO_Pin_8; //For debugging if interrupt is getting stuck
+
   uint8_t chartoreceive = 0;
   static uint8_t output_idx = 0;
 
@@ -195,6 +198,8 @@ void USART1_IRQHandler(void)
   {
           NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
   }
+
+  GPIOC->ODR &= ~(GPIO_Pin_8); //For debugging if interrupt is getting stuck
 }
 
 extern void UART_push_out(char* mesg){
