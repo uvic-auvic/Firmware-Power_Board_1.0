@@ -38,36 +38,54 @@ extern uint32_t Update_Internal_Pressure() {
 			//Start Pressure Conversion on the sensor
 			uint8_t temp_cmd_var = PRESSURE_CONVERT_4096_CMD;
 			I2C_write(SENSOR_ADDRESS , 1, &temp_cmd_var);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			vTaskDelay(15);
 
 			//Set read register on the sensor
 			temp_cmd_var = ADC_READ_REGISTER;
 			I2C_write(SENSOR_ADDRESS, 1, &temp_cmd_var);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			//Read pressure value from sensor
 			uint32_t internalPressure = 0;
 			I2C_read(SENSOR_ADDRESS, 3, (uint8_t *)&internalPressure);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			//Start Temperature Conversion on the sensor
 			temp_cmd_var = TEMPERATURE_CONVERT_4096_CMD;
 			I2C_write(SENSOR_ADDRESS , 1, &temp_cmd_var);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			vTaskDelay(15);
 
 			//Set read register on the sensor
 			temp_cmd_var = ADC_READ_REGISTER;
 			I2C_write(SENSOR_ADDRESS, 1, &temp_cmd_var);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			//Read temperature value from the sensors
 			uint32_t temperature = 0;
 			I2C_read(SENSOR_ADDRESS, 3, (uint8_t *)&temperature);
-			ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+			if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+				xSemaphoreGive(I2C_mutex);
+				return 0xFFFF;
+			}
 
 			xSemaphoreGive(I2C_mutex);
 

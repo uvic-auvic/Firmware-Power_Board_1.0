@@ -27,12 +27,18 @@ extern uint16_t Update_Humidity() {
 		uint8_t humidityAddress = CMD_MEASURE_RH_HM;
 
 		I2C_write(Si_Address , 1, &humidityAddress);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFF;
+		}
 
 		uint16_t relativeHumidity = 0;
 
 		I2C_read(Si_Address, 2, (uint8_t *)&relativeHumidity);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFF;
+		}
 
 		xSemaphoreGive(I2C_mutex);
 
@@ -52,12 +58,18 @@ extern uint16_t Update_Temperature() {
 		uint8_t tempAddress = CMD_MEASURE_TEMP_HM;
 
 		I2C_write(Si_Address, 1, &tempAddress);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFF;
+		}
 
 		uint16_t temperature = 0;
 
 		I2C_read(Si_Address, 2, (uint8_t *)&temperature);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFF;
+		}
 
 		xSemaphoreGive(I2C_mutex);
 

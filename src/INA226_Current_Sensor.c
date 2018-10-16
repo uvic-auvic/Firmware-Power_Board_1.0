@@ -62,12 +62,18 @@ extern uint32_t update_system_current() {
 		uint8_t currentReg = CURRENT_REG_ADDRESS;
 
 		I2C_write(SYSTEM_SENSOR_I2C_ADDRESS, 1, &currentReg);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFFFFFF;
+		}
 
 		uint32_t current = 0;
 
 		I2C_read(SYSTEM_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&current);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFFFFFF;
+		}
 
 		xSemaphoreGive(I2C_mutex);
 
@@ -86,12 +92,18 @@ extern uint32_t update_motor_current() {
 		uint8_t currentReg = CURRENT_REG_ADDRESS;
 
 		I2C_write(MOTOR_SENSOR_I2C_ADDRESS, 1, &currentReg);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFFFFFF;
+		}
 
 		uint32_t current = 0;
 
 		I2C_read(MOTOR_SENSOR_I2C_ADDRESS, 2, (uint8_t *)&current);
-		ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT);
+		if(ulTaskNotifyTake(pdTRUE, I2C_TIMEOUT) == 0) {
+			xSemaphoreGive(I2C_mutex);
+			return 0xFFFFFFFF;
+		}
 
 		xSemaphoreGive(I2C_mutex);
 
