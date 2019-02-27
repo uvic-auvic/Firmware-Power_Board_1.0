@@ -46,7 +46,7 @@ void blinkyTask(void *dummy){
 
 void vGeneralTaskInit(void){
    xTaskCreate(blinkyTask,
-		(const signed char *)"blinkyTask",
+		(const signed char *) "blinkyTask",
 		configMINIMAL_STACK_SIZE,
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
@@ -56,7 +56,6 @@ int
 main(int argc, char* argv[])
 {
 	initUSART();
-	//GPIO + ADC1 + DMA
 	initADC();
 	vGeneralTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */

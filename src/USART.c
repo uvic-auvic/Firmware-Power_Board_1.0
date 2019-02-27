@@ -10,8 +10,8 @@
 
 
 /* Global Variables */
-CharBuffer_t RXBuffer;
-Buffer_t Buffer1;
+CharBuffer_t Word;
+Buffer_t Buffer;
 
 /* -------------------------------- Configuration ------------------------------------ */
 /*
@@ -23,7 +23,7 @@ Buffer_t Buffer1;
 */
 static void Configure_GPIO(){
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1;/* AF mode */
+	GPIOA->MODER |= GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1; /* AF mode */
 	GPIOA->AFR[1] |= 0x110; /* Enable AF1 */
 }
 /*  @brief  Configures USART1
@@ -55,41 +55,34 @@ static void Configure_USART(){
 	NVIC_EnableIRQ(USART1_IRQn); /* (4) */
 }
 extern void initUSART(){
-	CharBuffer_init(&RXBuffer);
-	Buffer_init(&Buffer1);
+	CharBuffer_init(&Word);
+	Buffer_init(&Buffer);
 	Configure_GPIO();
 	Configure_USART();
 }
 
 /* ---------------------------------- Function -------------------------------------- */
-inline static void ReceiveChar(char charToReceive){
-	/*  Check for the Null terminator and Carriage return */
-	if((charToReceive == '\r') || (charToReceive == '\n')){
-		CharBuffer_to_Buffer(&RXBuffer, &Buffer1);
-	}
-	/* Check if the index is at max length */
-	else if(RXBuffer.size == MAX_LENGTH){
-		for(int i = 0; i < MAX_LENGTH; i++){
-			//RXBuffer->data[i] = '\0';
-		}
-		CharBuffer_init(&RXBuffer);
-	}
-	else{
-		CharBuffer_add(&RXBuffer, charToReceive);
-	}
-}
-
+/* The Interrupt handler will activate when a Char is in the RX register */
 void USART1_IRQHandler(){
-	/* Clear the TC Flag after sending out from ReceiveChar */
-	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
-		USART1->ICR |= USART_ICR_TCCF; /* clear TC flag */
+	if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
+		char letter = (uint8_t)(USART1->RDR);
+		/*  Check for the Null terminator and Carriage return */
+		if((letter == '\r') || (letter == '\n')){
+			CharBuffer_to_Buffer(&Word, &Buffer);
+		}
+		/* Check if the index is at max length */
+		else if(Word.size == MAX_LENGTH){
+			for(int i = 0; i < MAX_LENGTH; i++){		//What does this even do??? just reinitialize it
+				Word.data[i] = '\0';
+			}
+			CharBuffer_init(&Word);
+		}
+		else{
+			CharBuffer_add(&Word, letter);
+		}
 	}
-	/* Receive Char */
-	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
-		ReceiveChar((uint8_t)(USART1->RDR));
-	}
-	/* Disable USART1_IRQn */
+	/* Clear USART1_IRQn */
 	else{
-		NVIC_DisableIRQ(USART1_IRQn);
+		NVIC_ClearPendingIRQ(USART1_IRQn);
 	}
 }
