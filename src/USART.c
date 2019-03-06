@@ -64,15 +64,18 @@ extern void initUSART(){
 /* ---------------------------------- Function -------------------------------------- */
 /* The Interrupt handler will activate when a Char is in the RX register */
 void USART1_IRQHandler(){
-	if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
+	if((USART1->ISR & USART_ISR_TC) == USART_ISR_TC){
+		USART1->ICR |= USART_ICR_TCCF;
+	}
+	else if((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE){
 		char letter = (uint8_t)(USART1->RDR);
 		/*  Check for the Null terminator and Carriage return */
 		if((letter == '\r') || (letter == '\n')){
 			CharBuffer_to_Buffer(&Word, &Buffer);
 		}
 		/* Check if the index is at max length */
-		else if(Word.size == MAX_LENGTH){
-			for(int i = 0; i < MAX_LENGTH; i++){		//What does this even do??? just reinitialize it
+		else if(Word.size == MAX_LENGTH){ //Resets the buffer to default values
+			for(int i = 0; i < MAX_LENGTH; i++){
 				Word.data[i] = '\0';
 			}
 			CharBuffer_init(&Word);
@@ -80,6 +83,7 @@ void USART1_IRQHandler(){
 		else{
 			CharBuffer_add(&Word, letter);
 		}
+		USART1->TDR = letter;
 	}
 	/* Clear USART1_IRQn */
 	else{
