@@ -119,8 +119,50 @@ extern void FSM(void *dummy){
 		//RBxyyy command, Reboot Subsystem
 		else if (strncmp(commandString, "RB", 2) == 0) {
 
-			//Returns ACK for now so software can begin testing
-			UART_push_out("ACK\r\n");
+			bool power_off_motor = false;
+			bool power_off_system = false;
+
+			if (commandString[2] == 'M') {
+					power_off_motor = true;
+			} else if (commandString[2] == 'S'){
+					power_off_system = true;
+			} else if (commandString[2] == 'A'){
+					power_off_motor = true;
+					power_off_system = true;
+			} else {
+				UART_push_out("ERROR\r\n");
+			}
+
+			int time_input =
+					100*(commandString[3]-0)+
+					10* (commandString[4]-0)+
+					1*  (commandString[5]-0);
+
+
+			if(power_off_motor && power_off_system){
+				power_enable(motor_power, off);
+				power_enable(system_power, off);
+			} else if(power_off_motor){
+				power_enable(motor_power, off);
+			} else if(power_off_system){
+				power_enable(system_power, off);
+			}
+
+
+			vTaskDelay(time_input*1000);
+
+			if(power_off_motor && power_off_system){
+				power_enable(motor_power, on);
+				power_enable(system_power, on);
+				UART_push_out("ACK\r\n");
+			} else if(power_off_motor){
+				power_enable(motor_power, on);
+				UART_push_out("ACK\r\n");
+			} else if(power_off_system){
+				power_enable(system_power, on);
+				UART_push_out("ACK\r\n");
+			}
+
 		}
 
 		//PxEx command, Power Motor/System Enable/Disable
