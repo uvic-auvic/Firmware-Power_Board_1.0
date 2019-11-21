@@ -15,9 +15,50 @@
 #define CMD_READ_TEMP_PREV_RH        0xE0
 #define CMD_RESET                    0xFE
 
+//Temperature and Humidity Thresholds
+
+#define temperatureThreshold (325)
+#define humidityThreshold (75)
+
 
 //Si7021 I2C slave addresses
 #define Si_Address                   0b1000000
+
+//initializes Humidity and Temperature monitoring tasks
+void vHumidityTemperatureTaskInit (void){
+	   xTaskCreate(monitorTemperature,
+			(const char *)"monitorTemperature",
+			configMINIMAL_STACK_SIZE,
+			NULL,                 // pvParameters
+			tskIDLE_PRIORITY + 1, // uxPriority
+			NULL              ); // pvCreatedTask */
+	   xTaskCreate(monitorHumidity,
+			(const char *)"monitorHumidity",
+			configMINIMAL_STACK_SIZE,
+			NULL,                 // pvParameters
+			tskIDLE_PRIORITY + 1, // uxPriority
+			NULL              ); // pvCreatedTask */
+}
+
+//monitors Humidity and outputs a warning if its above a certain threshold
+void monitorHumidity(void *dummy){
+	while(1){
+		if (Update_Humidity() >=  humidityThreshold ){
+			UART_push_out("Humidity too high!");
+			vTaskDelay(500);
+		}
+	}
+}
+
+//monitors Temperature and outputs a warning if its above a certain threshold
+void monitorTemperature(void *dummy){
+	while(1){
+		if(Update_Temperature() >= temperatureThreshold){
+			UART_push_out("Temperature too high!");
+			vTaskDelay(500);
+		}
+	}
+}
 
 
 //Take the relative humidity and return it as a percentage
@@ -80,4 +121,10 @@ extern uint16_t Update_Temperature() {
 	} else {
 		return 0xFFFF;
 	  }
+}
+
+// return humidity
+//returns temperature
+extern uint32_t return_temperature_value(){
+	return 0b11010;
 }

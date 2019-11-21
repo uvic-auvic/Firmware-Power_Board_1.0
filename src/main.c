@@ -29,6 +29,8 @@
 #include "I2C.h"
 #include "sensors.h"
 #include "Reed_Switch.h"
+#include "Si7021_temp_humidity_sensor.h"
+
 
 void blinkyTask(void *dummy){
 	GPIOC->ODR |= GPIO_Pin_8; // To turn on the green LED
@@ -48,6 +50,8 @@ void blinkyTask(void *dummy){
 	}
 }
 
+
+
 void vGeneralTaskInit(void){
    xTaskCreate(blinkyTask,
 		(const char *)"blinkyTask",
@@ -55,7 +59,6 @@ void vGeneralTaskInit(void){
 		NULL,                 // pvParameters
 		tskIDLE_PRIORITY + 1, // uxPriority
 		NULL              ); // pvCreatedTask */
-
 }
 
 int main(int argc, char* argv[]) {
@@ -68,9 +71,11 @@ int main(int argc, char* argv[]) {
 	I2C_init();
 	init_Sensors();
 	init_HSDs();
+
 	FSM_Init();
 
 	vGeneralTaskInit();
+	vHumidityTemperatureTaskInit();
 	/* Start the kernel.  From here on, only tasks and interrupts will run. */
 	vTaskStartScheduler();
 
