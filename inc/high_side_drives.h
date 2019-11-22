@@ -12,7 +12,7 @@ typedef enum board_section{
 	system_power,
 	motor_power,
 	_12V_9V_power,
-	_5V_power,
+	_5V_power
 }board_section_t;
 
 typedef enum state{
